@@ -13,8 +13,6 @@ class TerminalController(object):
         cmd = self._getCommand(args)
         historyOutput = self._getHistoryOutput(args)
         self.logCommandUnderExecution(cmd)
-        if (cmd == 'raise'):
-            raise Exception("examplary exception")
         commandOutput = self._runCommand(cmd)
         output = self._formatOutput(historyOutput, cmd, commandOutput)
         TerminalRenderer.render(output)        
