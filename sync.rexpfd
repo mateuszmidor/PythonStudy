@@ -6,5 +6,6 @@
         <file path="/Cmd/index.py"/>
         <folder path="/Cmd/data"/>
         <folder path="/Cmd/src"/>
+        <folder path="/Cmd/diagnostics"/>
     </selectedElements>
 </rexpfd>

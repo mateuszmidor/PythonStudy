@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import cgi
-from src import Main
+from src import MainController
 
-args = cgi.FieldStorage()
-Main.run(args)
+params = cgi.FieldStorage()
+main = MainController()
+main.run(params)
