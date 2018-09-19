@@ -3,8 +3,8 @@ Created on 08-09-2014
 
 @author: mateusz
 '''
-from webpagetemplate import WebPageTemplate
-from httpresponse import HttpResponse
+from src.webpagetemplate import WebPageTemplate
+from src.httpresponse import HttpResponse
 
 class ErrorRenderer(object):
     
@@ -15,5 +15,5 @@ class ErrorRenderer(object):
 
     @staticmethod
     def getErrorPage():
-        page = WebPageTemplate.fromFile("data/Error.htm")
+        page = WebPageTemplate.fromFile("cgi-bin/data/Error.htm")
         return page

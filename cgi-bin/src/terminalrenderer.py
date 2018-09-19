@@ -1,5 +1,5 @@
-from webpagetemplate import WebPageTemplate
-from httpresponse import HttpResponse
+from src.webpagetemplate import WebPageTemplate
+from src.httpresponse import HttpResponse
 
 class TerminalRenderer():
     
@@ -10,7 +10,7 @@ class TerminalRenderer():
 
     @staticmethod
     def prepareOfferPage(contents):
-        page = WebPageTemplate.fromFile("data/Terminal.htm")
+        page = WebPageTemplate.fromFile("cgi-bin/data/Terminal.htm")
         page.setField(u"$OUTPUT$", contents)
         return page
 

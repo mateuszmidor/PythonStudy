@@ -4,8 +4,8 @@ Created on 08-09-2014
 @author: mateusz
 '''
 import logging
-from commandexecutor import CommandExecutor
-from terminalrenderer import TerminalRenderer
+from src.commandexecutor import CommandExecutor
+from src.terminalrenderer import TerminalRenderer
 
 class TerminalController(object):
 
@@ -24,7 +24,7 @@ class TerminalController(object):
         try:
             out = CommandExecutor.execute(cmd)
             return out
-        except Exception, e:
+        except Exception as e:
             return unicode(e) 
 
     def _formatOutput(self, historyOutput, cmd, commandOutput):

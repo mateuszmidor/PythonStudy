@@ -1,0 +1,8 @@
+{
+  "runtime": {
+    "majorVersion": "2.7.15"
+  },
+  "command": "python -m CGIHTTPServer $PORT",
+  
+  "notes": "Cmd"
+} 

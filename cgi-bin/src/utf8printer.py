@@ -16,4 +16,4 @@ class Utf8Printer():
     @staticmethod
     def printText(utf8Text):
         Utf8Printer.setupUtf8Printing()
-        print utf8Text
+        print (utf8Text)
