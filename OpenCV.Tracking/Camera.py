@@ -48,6 +48,7 @@ class CameraCapture:
                 self.current_camera_frame = self.template_matching.match(self.current_camera_frame)
             else:
                 self.draw_user_rectangle()
+                
             opencv.imshow(common.preview_window_name, self.current_camera_frame)
             if opencv.waitKey(self.ms_delay) == common.quit_key:
                 self.stop_preview()

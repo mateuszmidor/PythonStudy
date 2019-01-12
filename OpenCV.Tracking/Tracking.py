@@ -10,8 +10,8 @@ class TemplateMatching:
 
     def set_template(self, current_camera_frame, user_rectangle):
         if current_camera_frame is not None:
-            self.template = current_camera_frame[user_rectangle[1]:user_rectangle[3], user_rectangle[0], user_rectangle[2]]
-            opencv.imshow(common.template_preview_window_name, self.template)
+            self.template = current_camera_frame[user_rectangle[1]:user_rectangle[3], user_rectangle[0]:user_rectangle[2]]
+        opencv.imshow(common.template_preview_window_name, self.template)
 
     def has_template(self):
         return self.template is not None
@@ -21,7 +21,7 @@ class TemplateMatching:
 
     def match(self, current_camera_frame):
         if self.template is not None:
-            match_result = opencv.matchTemplate(opencv.TM_CCOEFF_NORMED)
+            match_result = opencv.matchTemplate(current_camera_frame, self.template, opencv.TM_CCOEFF_NORMED)
             opencv.imshow(common.match_result_window_name, match_result)
             return self.draw_tracking_result(match_result, current_camera_frame)
         else:
@@ -35,7 +35,7 @@ class TemplateMatching:
 
         correlation_threshold = 0.7
 
-        if max> correlation_threshold:
+        if max > correlation_threshold:
             color = common.green
         else:
             color = common.red
