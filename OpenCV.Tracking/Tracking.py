@@ -24,16 +24,16 @@ class TemplateMatching:
             match_result = opencv.matchTemplate(current_camera_frame, self.template, opencv.TM_CCOEFF_NORMED)
             opencv.imshow(common.match_result_window_name, match_result)
             return self.draw_tracking_result(match_result, current_camera_frame)
-        else:
-            return None
-    
+
+        return None
+
     def draw_tracking_result(self, match_result, current_camera_frame):
         (min, max, min_loc, max_loc) = opencv.minMaxLoc(match_result)
         (ref_width, ref_height, ref_channels) = self.template.shape
         top_left_corner = (max_loc[0], max_loc[1])
         bottom_right_corner = (max_loc[0] + ref_height, max_loc[1] + ref_width)
 
-        correlation_threshold = 0.7
+        correlation_threshold = 0.5
 
         if max > correlation_threshold:
             color = common.green

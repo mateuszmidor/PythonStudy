@@ -21,17 +21,17 @@ class CameraCapture:
         if event == opencv.EVENT_LBUTTONDOWN:
             self.template_matching.clear_template()
             self.mouse_start_pos = (x, y)
-        elif flags & opencv.EVENT_FLAG_LBUTTON:
-            if self.mouse_start_pos is not None:
-                min_pos = min(self.mouse_start_pos[0], x), min(self.mouse_start_pos[1], y)
-                max_pos = max(self.mouse_start_pos[0], x), max(self.mouse_start_pos[1], y)
-                self.user_rectangle = (min_pos[0], min_pos[1], max_pos[0], max_pos[1])
         elif event == opencv.EVENT_LBUTTONUP:
             self.mouse_start_pos = None
             self.template_matching.set_template(self.current_camera_frame, self.user_rectangle)
         elif event == opencv.EVENT_RBUTTONDOWN:
             self.template_matching.clear_template()
             self.user_rectangle = None
+        elif flags & opencv.EVENT_FLAG_LBUTTON:
+            if self.mouse_start_pos is not None:
+                min_pos = min(self.mouse_start_pos[0], x), min(self.mouse_start_pos[1], y)
+                max_pos = max(self.mouse_start_pos[0], x), max(self.mouse_start_pos[1], y)
+                self.user_rectangle = (min_pos[0], min_pos[1], max_pos[0], max_pos[1])
 
     def start_preview(self):
         self.is_preview_active = True
@@ -48,7 +48,7 @@ class CameraCapture:
                 self.current_camera_frame = self.template_matching.match(self.current_camera_frame)
             else:
                 self.draw_user_rectangle()
-                
+
             opencv.imshow(common.preview_window_name, self.current_camera_frame)
             if opencv.waitKey(self.ms_delay) == common.quit_key:
                 self.stop_preview()
