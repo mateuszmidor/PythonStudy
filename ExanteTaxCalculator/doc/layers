@@ -1,0 +1,38 @@
+              +------------+  +------------+
+              |            |  |            |
+/UI/          | CLI client |  | WEB client |
+              |            |  |            |
+              +------+-----+  +-----+------+
+                     |              |
+                     |              | CalcTaxForYear(2020)
+                     |              |    -> Final tax value
+                     |              |    -> Profit/Loss on each transaction,
+                     |              |       Final amount of each currency and asset
+                     |              |
+                     |              | +-----------------------------------------------------------------------+
+                     |              | |will replay all activities in repo on calculator in chronological order|
+              +------v--------------v------+------------------------------------------------------------------+
+              |                            |
+/APPLICATION/ |           Trader           |
+              |                            |
+              +----+----------------+------+
+                   |                |
+                   |                | +-----------------------------------------------------------------------------+
+                   |                | |will calc amounts of currency/assets and calculate tax for each SELL activity|
+                   |   +------------v-------+-----------------------------------------------------------------------+
+                   |   |                    |
+/DOMAIN/           |   | TradeTaxCalculator |
+                   |   |                    |
+                   |   +--------------------+
+                   |
+                   |                  +---------------------------------------------------------------------+
+                   |                  |will parse broker csv; needs trade history from account first funding|
+               +---v------------------------+---------------------------------------------------------------+
+               |                            |
+/INFRA/        |  TradeActivityRepository   |
+               |   *Fund                    |
+               |   *Withdraw                |
+               |   *Exchange                |
+               |   *Buy                     |
+               |   *Sell                    |
+               +----------------------------+
