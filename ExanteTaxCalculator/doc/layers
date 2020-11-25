@@ -4,10 +4,9 @@
               |            |  |            |
               +------+-----+  +-----+------+
                      |              |
-                     |              | CalcTaxForYear(2020)
-                     |              |    -> Final tax value
-                     |              |    -> Profit/Loss on each transaction,
-                     |              |       Final amount of each currency and asset
+                     |              | CalcTaxForYear(2020) -> TradingYearlyReport:
+                     |              |    -> Profit/Loss on each transaction, sum gives total tax
+                     |              |    -> Final amount of each currency and asset
                      |              |
                      |              | +-----------------------------------------------------------------------+
                      |              | |will replay all activities in repo on calculator in chronological order|

@@ -33,10 +33,17 @@ function setupVirtualEnv() {
     if [[ ! -d venv ]]; then 
         sudo $PIP install -U virtualenv  # system-wide install
         virtualenv --system-site-packages -p $PYTHON ./venv
-        #   $PIP install --user matplotlib
     fi
 
     source ./venv/bin/activate # virtualenv
+
+    echo "Done"
+}
+
+function intallRequirements() {
+    stage "Installing requirements.txt"
+
+    $PIP install -r src/requirements.txt
 
     echo "Done"
 }
@@ -45,6 +52,14 @@ function runProgram() {
     stage "Running program"
 
     $PYTHON src/main.py
+
+    echo "Done"
+}
+
+function runTests() {
+    stage "Running unit tests"
+
+    pytest src/
 
     echo "Done"
 }
@@ -59,5 +74,6 @@ function tearDown() {
 
 checkPrerequsites
 setupVirtualEnv
-runProgram
+intallRequirements
+[[ $1 == "--test" ]] && runTests || runProgram
 tearDown
