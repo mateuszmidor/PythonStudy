@@ -1,17 +1,21 @@
 from decimal import Decimal
+from money import Money
 from typing import DefaultDict
+from src.domain.currency import Currency
 
-class CurrencyWallet(DefaultDict[str, Decimal]):
+class CurrencyWallet(object):
     """ CurrencyWallet represents a collectio of [currency, amount] pairs with default amount of 0.0 for each currency """
     
     def __init__(self):
-        super(CurrencyWallet, self).__init__(Decimal) # ensure default of 0
+        self._currencies = DefaultDict(Decimal)
 
-    def __setitem__(self, key : str, value: Decimal):
-        if len(key) != 3:
-            raise TypeError(f"Currency code should be 3 characters:, got {key}")
+    def get(self, currency : Currency) -> Decimal:
+        return self._currencies[currency]
 
-        if value < 0.0:
-            raise ValueError(f"Currency value should be >= 0, got: {value}")
+    def pay_in(self, m : Money):
+        currency = Currency(m.currency)
+        self._currencies[currency] += m.amount
 
-        super(CurrencyWallet, self).__setitem__(key, value)
+    def pay_out(self, m : Money):
+        currency = Currency(m.currency)
+        self._currencies[currency] -= m.amount
