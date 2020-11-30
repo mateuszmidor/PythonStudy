@@ -31,19 +31,17 @@ function setupVirtualEnv() {
     stage "Setting up virtualenv"
 
     if [[ ! -d venv ]]; then 
+        # install and initialize virtual env
         sudo $PIP install -U virtualenv  # system-wide install
         virtualenv --system-site-packages -p $PYTHON ./venv
+        source ./venv/bin/activate 
+
+        # install requirements into newly initialized virtualenv
+        $PIP install -r src/requirements.txt
+    else
+        # just activate virtualenv
+        source ./venv/bin/activate
     fi
-
-    source ./venv/bin/activate # virtualenv
-
-    echo "Done"
-}
-
-function intallRequirements() {
-    stage "Installing requirements.txt"
-
-    $PIP install -r src/requirements.txt
 
     echo "Done"
 }
@@ -82,7 +80,6 @@ function tearDown() {
 
 checkPrerequsites
 setupVirtualEnv
-intallRequirements
 checkWithMyPy
 [[ $1 == "--test" ]] && runTests || runProgram
 tearDown
