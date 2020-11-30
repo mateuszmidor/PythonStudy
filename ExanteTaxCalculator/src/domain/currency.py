@@ -16,6 +16,9 @@ class Currency(object):
     def __hash__(self) -> int:
         return self.value.__hash__()
 
+    def __str__(self) -> str:
+        return self.value
+
 def valid_format_or_exception(currency : str):
     Money("0", currency) # exception on invalid format
 

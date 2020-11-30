@@ -3,18 +3,17 @@ from decimal import Decimal
 from money import Money
 from src.domain.currency_wallet import CurrencyWallet
 from src.utils.capture_exception import capture_exception
-from src.domain.currency import Currency
+from src.domain.currency import USD
 
-USD = Currency("USD")
 
 class CurrencyWalletTest(unittest.TestCase):
-
     def test_pay_in(self):
         # given
         wallet = CurrencyWallet()
+        money = Money(100, "USD")
 
         # when
-        wallet.pay_in(Money(100, "USD"))
+        wallet.pay_in(money)
 
         # then
         self.assertEqual(wallet.get(USD), Decimal("100"))

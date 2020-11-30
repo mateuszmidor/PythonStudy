@@ -28,3 +28,16 @@ class TaxCalculatorTest(unittest.TestCase):
 
         # then
         self.assertIsInstance(e, ValueError)
+
+    def test_withdrawing_decreases_currency(self):
+        # given
+        calc = TaxCalculator()
+        calc.fund(Money(100, "EUR"))
+        money = Money(50, "EUR")
+
+        # when
+        calc.withdraw(money)
+
+        # then
+        eur_owned = calc.report().get_currency(EUR)
+        self.assertEqual(eur_owned, Decimal("50.0"))
