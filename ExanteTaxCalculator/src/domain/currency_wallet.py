@@ -2,16 +2,14 @@ from decimal import Decimal
 from money import Money
 from typing import DefaultDict
 from src.domain.currency import Currency
-from src.utils.assert_type import assert_type
 
 class CurrencyWallet(object):
     """ CurrencyWallet represents a collectio of [currency, amount] pairs with default amount of 0.0 for each currency """
     
     def __init__(self):
-        self._currencies = DefaultDict(Decimal)
+        self._currencies : DefaultDict = DefaultDict(Decimal)
 
     def get(self, currency : Currency) -> Decimal:
-        assert_type(currency, Currency)
         return self._currencies[currency]
 
     def pay_in(self, m : Money):
