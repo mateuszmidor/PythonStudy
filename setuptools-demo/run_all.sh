@@ -32,7 +32,7 @@ function setupVirtualEnv() {
 
     # install and initialize virtual env
     sudo $PIP install -U virtualenv  # system-wide install
-    virtualenv --system-site-packages -p $PYTHON ./venv
+    virtualenv -p $PYTHON ./venv
     source ./venv/bin/activate 
 
     echo "Done"
