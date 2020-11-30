@@ -48,6 +48,14 @@ function intallRequirements() {
     echo "Done"
 }
 
+function checkWithMyPy() {
+    stage "Running mypy"
+
+    mypy --ignore-missing-imports src/ # dont scan 3rd party libraries
+
+    echo "Done"
+}
+
 function runProgram() {
     stage "Running program"
 
@@ -75,5 +83,6 @@ function tearDown() {
 checkPrerequsites
 setupVirtualEnv
 intallRequirements
+checkWithMyPy
 [[ $1 == "--test" ]] && runTests || runProgram
 tearDown
