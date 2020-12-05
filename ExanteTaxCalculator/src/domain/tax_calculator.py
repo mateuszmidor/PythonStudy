@@ -7,13 +7,13 @@ from src.domain.trading_yearly_report import TradingYearlyReport
 
 class TaxCalculator:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._currencies = CurrencyWallet()
 
-    def fund(self, money: Money):
+    def fund(self, money: Money) -> None:
         self._currencies.pay_in(money)
 
-    def withdraw(self, m : Money):
+    def withdraw(self, m : Money) -> None:
         currency = Currency(m.currency)
         owned_amount = self._currencies.get(currency)
         needed_amount = m.amount

@@ -6,6 +6,7 @@ class TradingYearlyReport:
 
     def __init__(self, currencies: CurrencyWallet):
         self._currencies = currencies
+        self.items = []
 
     def get_currency(self, currency : Currency) -> Decimal :
         return self._currencies.get(currency)
