@@ -1,6 +1,7 @@
 from decimal import Decimal
 
-class Asset(object):
+
+class Asset:
     def __init__(self, amount: Decimal, symbol: str):
         self._amount = amount
         self._symbol = symbol
@@ -11,7 +12,7 @@ class Asset(object):
         return Asset(self._amount + other._amount, self._symbol)
 
     def amount(self) -> Decimal:
-        return self._amount   
+        return self._amount
 
     def symbol(self) -> str:
         return self._symbol

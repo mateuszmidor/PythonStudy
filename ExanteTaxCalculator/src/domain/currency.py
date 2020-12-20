@@ -1,7 +1,7 @@
 from money import Money
 
 
-class Currency(object):
+class Currency:
     """ Currency is value object with restrictions on format """
 
     def __init__(self, currency: str):
