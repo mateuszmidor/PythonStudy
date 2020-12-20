@@ -2,9 +2,10 @@ class Welcomer:
     def __init__(self):
         print("Hello world")
 
+
 def main():
-     Welcomer()
-    
+    Welcomer()
+
+
 if __name__ == "__main__":
     main()
-
