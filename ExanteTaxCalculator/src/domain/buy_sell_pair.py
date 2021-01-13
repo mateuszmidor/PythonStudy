@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TaxableItem:
+class BuySellPair:
     # to be filled by Trader
     asset_name: str
 
