@@ -5,9 +5,9 @@ from decimal import Decimal
 from money import Money
 
 from src.utils.capture_exception import capture_exception
-from src.domain.taxable_item import TaxableItem
+from src.domain.buy_sell_pair import BuySellPair
 from src.domain.currency import Currency
-from src.domain.taxable_item_quotator import TaxableItemPLNQuotator
+from src.domain.quotation.buy_sell_pair_pln_quotator import BuySellPairPLNQuotator
 from src.domain.errors import NoQuotesAvailableError
 
 
@@ -34,8 +34,8 @@ class QuotesProviderStub:
 class TaxableItemQuotatorTest(unittest.TestCase):
     def test_quotation_unsupported_currency_raises_error(self):
         # given
-        quotator = TaxableItemPLNQuotator(QuotesProviderStub())
-        taxable_item = TaxableItem(
+        quotator = BuySellPairPLNQuotator(QuotesProviderStub())
+        buy_sell_pair = BuySellPair(
             "PHYS",
             100,
             Money("1000", "SGD"),
@@ -50,16 +50,16 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         )
 
         # when
-        expected_error = capture_exception(quotator.quote, taxable_item)
+        expected_error = capture_exception(quotator.quote, buy_sell_pair)
 
         # then
         self.assertIsInstance(expected_error, NoQuotesAvailableError)
 
     def test_quotation_before_available_quotes_raises_error(self):
         # given
-        quotator = TaxableItemPLNQuotator(QuotesProviderStub())
+        quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         before_available = datetime.date(2000, 12, 20)
-        taxable_item = TaxableItem(
+        buy_sell_pair = BuySellPair(
             "PHYS",
             100,
             Money("1000", "USD"),
@@ -74,16 +74,16 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         )
 
         # when
-        expected_error = capture_exception(quotator.quote, taxable_item)
+        expected_error = capture_exception(quotator.quote, buy_sell_pair)
 
         # then
         self.assertIsInstance(expected_error, NoQuotesAvailableError)
 
     def test_quotation_after_available_quotes_raises_error(self):
         # given
-        quotator = TaxableItemPLNQuotator(QuotesProviderStub())
+        quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         after_available = datetime.date(2001, 1, 5)
-        taxable_item = TaxableItem(
+        buy_sell_pair = BuySellPair(
             "PHYS",
             100,
             Money("1000", "USD"),
@@ -98,15 +98,15 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         )
 
         # when
-        expected_error = capture_exception(quotator.quote, taxable_item)
+        expected_error = capture_exception(quotator.quote, buy_sell_pair)
 
         # then
         self.assertIsInstance(expected_error, NoQuotesAvailableError)
 
     def test_same_amounts_different_quotes(self):
         # given
-        quotator = TaxableItemPLNQuotator(QuotesProviderStub())
-        taxable_item = TaxableItem(
+        quotator = BuySellPairPLNQuotator(QuotesProviderStub())
+        buy_sell_pair = BuySellPair(
             "PHYS",
             100,
             Money("1000", "USD"),
@@ -121,7 +121,7 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         )
 
         # when
-        item = quotator.quote(taxable_item)
+        item = quotator.quote(buy_sell_pair)
 
         # then
         self.assertEqual(item.buy_pln_quotation_date, datetime.date(2000, 12, 23))
@@ -134,8 +134,8 @@ class TaxableItemQuotatorTest(unittest.TestCase):
 
     def test_different_amounts_same_quotes(self):
         # given
-        quotator = TaxableItemPLNQuotator(QuotesProviderStub())
-        taxable_item = TaxableItem(
+        quotator = BuySellPairPLNQuotator(QuotesProviderStub())
+        buy_sell_pair = BuySellPair(
             "PHYS",
             100,
             Money("1000", "USD"),
@@ -150,7 +150,7 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         )
 
         # when
-        item = quotator.quote(taxable_item)
+        item = quotator.quote(buy_sell_pair)
 
         # then
         self.assertEqual(item.buy_pln_quotation_date, datetime.date(2000, 12, 20))
