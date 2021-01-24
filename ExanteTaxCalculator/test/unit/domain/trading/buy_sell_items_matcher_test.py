@@ -3,7 +3,7 @@ from money import Money
 from datetime import date
 
 from src.utils.capture_exception import capture_exception
-from src.domain.buy_sell_items_matcher import BuySellItemsMatcher
+from src.domain.trading.buy_sell_items_matcher import BuySellItemsMatcher
 from src.domain.transaction_items.buy_item import BuyItem
 from src.domain.transaction_items.sell_item import SellItem
 from src.domain.errors import InsufficientAssetError
