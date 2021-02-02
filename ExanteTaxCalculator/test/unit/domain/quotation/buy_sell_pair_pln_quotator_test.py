@@ -5,7 +5,9 @@ from decimal import Decimal
 from money import Money
 
 from src.utils.capture_exception import capture_exception
-from src.domain.buy_sell_pair import BuySellPair
+from src.domain.transactions.buy_item import BuyItem
+from src.domain.transactions.sell_item import SellItem
+from src.domain.trading.buy_sell_pair import BuySellPair
 from src.domain.currency import Currency
 from src.domain.quotation.buy_sell_pair_pln_quotator import BuySellPairPLNQuotator
 from src.domain.errors import NoQuotesAvailableError
@@ -36,17 +38,23 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         # given
         quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         buy_sell_pair = BuySellPair(
-            "PHYS",
-            100,
-            Money("1000", "SGD"),
-            Money("1", "SGD"),
-            datetime.date(2000, 12, 26),
-            0,
-            100,
-            Money("1000", "SGD"),
-            Money("1", "SGD"),
-            datetime.date(2000, 12, 27),
-            0,
+            buy=BuyItem(
+                asset_name="PHYS",
+                amount=100,
+                paid=Money("1000", "SGD"),
+                commission=Money("1", "SGD"),
+                date=datetime.date(2000, 12, 26),
+                transaction_id=0,
+            ),
+            sell=SellItem(
+                asset_name="PHYS",
+                amount=100,
+                received=Money("1000", "SGD"),
+                commission=Money("1", "SGD"),
+                date=datetime.date(2000, 12, 27),
+                transaction_id=0,
+            ),
+            amount_sold=100,
         )
 
         # when
@@ -60,17 +68,23 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         before_available = datetime.date(2000, 12, 20)
         buy_sell_pair = BuySellPair(
-            "PHYS",
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            before_available,
-            0,
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            datetime.date(2000, 12, 27),
-            0,
+            buy=BuyItem(
+                asset_name="PHYS",
+                amount=100,
+                paid=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                date=before_available,
+                transaction_id=0,
+            ),
+            sell=SellItem(
+                asset_name="PHYS",
+                amount=100,
+                received=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                date=datetime.date(2000, 12, 27),
+                transaction_id=0,
+            ),
+            amount_sold=100,
         )
 
         # when
@@ -84,17 +98,23 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         after_available = datetime.date(2001, 1, 5)
         buy_sell_pair = BuySellPair(
-            "PHYS",
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            datetime.date(2000, 12, 26),
-            0,
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            after_available,
-            0,
+            buy=BuyItem(
+                asset_name="PHYS",
+                amount=100,
+                paid=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                date=datetime.date(2000, 12, 26),
+                transaction_id=0,
+            ),
+            sell=SellItem(
+                asset_name="PHYS",
+                amount=100,
+                received=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                date=after_available,
+                transaction_id=0,
+            ),
+            amount_sold=100,
         )
 
         # when
@@ -107,17 +127,16 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         # given
         quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         buy_sell_pair = BuySellPair(
-            "PHYS",
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            datetime.date(2000, 12, 26),
-            0,
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            datetime.date(2000, 12, 27),
-            0,
+            BuyItem(
+                asset_name="PHYS",
+                amount=100,
+                paid=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                date=datetime.date(2000, 12, 26),
+                transaction_id=1,
+            ),
+            SellItem("PHYS", 100, Money("1000", "USD"), Money("1", "USD"), datetime.date(2000, 12, 27), 2),
+            amount_sold=100,
         )
 
         # when
@@ -136,17 +155,23 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         # given
         quotator = BuySellPairPLNQuotator(QuotesProviderStub())
         buy_sell_pair = BuySellPair(
-            "PHYS",
-            100,
-            Money("1000", "USD"),
-            Money("1", "USD"),
-            datetime.date(2000, 12, 21),
-            0,
-            10,
-            Money("100", "USD"),
-            Money("2", "USD"),
-            datetime.date(2000, 12, 23),
-            0,
+            buy=BuyItem(
+                asset_name="PHYS",
+                amount=100,
+                paid=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                date=datetime.date(2000, 12, 21),
+                transaction_id=0,
+            ),
+            sell=SellItem(
+                asset_name="PHYS",
+                amount=10,
+                received=Money("100", "USD"),
+                commission=Money("2", "USD"),
+                date=datetime.date(2000, 12, 23),
+                transaction_id=0,
+            ),
+            amount_sold=10,
         )
 
         # when

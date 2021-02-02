@@ -1,21 +1,15 @@
-from money import Money
+from dataclasses import dataclass
 
 
+@dataclass(frozen=True)
 class Currency:
     """ Currency is value object with restrictions on format """
 
-    def __init__(self, currency: str):
-        valid_format_or_exception(currency)
-        self.value = currency
+    value: str
 
-    def __eq__(self, other) -> bool:
-        return (type(other) is type(self)) and (self.value == other.value)
-
-    def _neq__(self, other) -> bool:
-        return not self.__eq__(other)
-
-    def __hash__(self) -> int:
-        return self.value.__hash__()
+    def __post_init__(self):
+        if not self.value.isupper() or not Currency.is_currency(self.value):
+            raise ValueError(f"{self.value} is not valid currency")
 
     def __str__(self) -> str:
         return self.value
@@ -193,10 +187,6 @@ class Currency:
             "ZWL",
         ]
         return cur.upper() in known_currencies
-
-
-def valid_format_or_exception(currency: str):
-    Money("0", currency)  # exception on invalid format
 
 
 # predefined currencies

@@ -7,7 +7,7 @@ from money import Money
 from src.utils.capture_exception import capture_exception
 from src.domain.errors import NoQuotesAvailableError
 from src.domain.currency import Currency
-from src.domain.transaction_items.dividend_item import DividendItem
+from src.domain.transactions.dividend_item import DividendItem
 from src.domain.quotation.dividend_item_pln_quotator import DividendItemPLNQuotator
 
 
@@ -38,8 +38,6 @@ class DividendItemQuotatorTest(unittest.TestCase):
         dividend = DividendItem(
             received_dividend=Money("100", "SGD"),
             paid_tax=Money("15", "SGD"),
-            date=datetime.date(2000, 12, 27),
-            transaction_id=1,
         )
 
         # when
@@ -56,7 +54,6 @@ class DividendItemQuotatorTest(unittest.TestCase):
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
             date=before_available,
-            transaction_id=1,
         )
 
         # when
@@ -75,7 +72,6 @@ class DividendItemQuotatorTest(unittest.TestCase):
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
             date=after_available,
-            transaction_id=1,
         )
 
         # when
@@ -91,7 +87,6 @@ class DividendItemQuotatorTest(unittest.TestCase):
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
             date=datetime.date(2000, 12, 24),
-            transaction_id=1,
         )
 
         # when
@@ -100,6 +95,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         # then
         self.assertEqual(item.dividend_pln_quotation_date, datetime.date(2000, 12, 23))
         self.assertEqual(item.received_dividend_pln, Decimal(300))  # 100 * 3 USD/PLN
+        self.assertEqual(item.paid_tax_pln, Decimal(45))  # 15 * 3 USD/PLN
 
     def test_quote_after_weekend(self):
         # given
@@ -108,7 +104,6 @@ class DividendItemQuotatorTest(unittest.TestCase):
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
             date=datetime.date(2000, 12, 27),
-            transaction_id=1,
         )
 
         # when
@@ -117,3 +112,4 @@ class DividendItemQuotatorTest(unittest.TestCase):
         # then
         self.assertEqual(item.dividend_pln_quotation_date, datetime.date(2000, 12, 26))
         self.assertEqual(item.received_dividend_pln, Decimal(400))  # 100 * 4 USD/PLN
+        self.assertEqual(item.paid_tax_pln, Decimal(60))  # 15 * 4 USD/PLN

@@ -12,7 +12,7 @@
                      |              | |will replay all activities in repo on calculator in chronological order|
               +------v--------------v------+------------------------------------------------------------------+
               |                            |
-/APPLICATION/ |           Trader           |
+/APPLICATION/ |        AutoTrader          |
               |                            |
               +----+----------------+------+
                    |                |
@@ -20,7 +20,7 @@
                    |                | |will calc amounts of currency/assets and calculate tax for each SELL activity|
                    |   +------------v-------+-----------------------------------------------------------------------+
                    |   |                    |
-/DOMAIN/           |   | TradeTaxCalculator |
+/DOMAIN/           |   |   TaxCalculator    |
                    |   |                    |
                    |   +--------------------+
                    |

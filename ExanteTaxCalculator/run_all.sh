@@ -6,6 +6,11 @@ trap tearDown SIGINT
 PYTHON=python3
 PIP=pip3
 
+function die() {
+    echo "Error: $@"
+    exit 1
+}
+
 function stage() {
     BOLD_BLUE="\e[1m\e[34m"
     RESET="\e[0m"
@@ -47,9 +52,9 @@ function setupVirtualEnv() {
 }
 
 function checkWithMyPy() {
-    stage "Running mypy"
+    stage "Running mypy"s
 
-    mypy --ignore-missing-imports src/ # dont scan 3rd party libraries
+    mypy --ignore-missing-imports src test || die "mypy failed" # dont scan 3rd party libraries
 
     echo "Done"
 }
@@ -65,7 +70,8 @@ function runProgram() {
 function runTests() {
     stage "Running unit tests"
 
-    pytest src/
+    # pytest --cov-report term-missing --cov=src src/ test/
+    pytest src/ test/
 
     echo "Done"
 }

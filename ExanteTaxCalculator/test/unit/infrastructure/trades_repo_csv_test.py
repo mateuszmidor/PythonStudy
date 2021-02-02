@@ -6,7 +6,7 @@ from typing import List
 
 from src.infrastructure.trades_repo_csv import TradesRepoCSV
 from src.infrastructure.errors import InvalidTradeError, CorruptedReportError
-from src.domain.transaction_items import *
+from src.domain.transactions import *
 from src.utils.capture_exception import capture_exception
 
 
@@ -17,10 +17,10 @@ class TradesRepoCSVTest(unittest.TestCase):
         repo = TradesRepoCSV()
 
         # when
-        e = capture_exception(repo.load, report_csv)
+        expected_error = capture_exception(repo.load, report_csv)
 
         # then
-        self.assertIsInstance(e, CorruptedReportError)
+        self.assertIsInstance(expected_error, CorruptedReportError)
 
     def test_read_corrupted_header_raises_error(self) -> None:
         # given
@@ -28,10 +28,10 @@ class TradesRepoCSVTest(unittest.TestCase):
         repo = TradesRepoCSV()
 
         # when
-        e = capture_exception(repo.load, report_csv)
+        expected_error = capture_exception(repo.load, report_csv)
 
         # then
-        self.assertIsInstance(e, CorruptedReportError)
+        self.assertIsInstance(expected_error, CorruptedReportError)
 
     def test_read_missing_trade_rows_raises_error(self) -> None:
         # given
@@ -42,12 +42,14 @@ class TradesRepoCSVTest(unittest.TestCase):
         repo = TradesRepoCSV()
 
         # when
-        e = capture_exception(repo.load, report_csv)
+        expected_error = capture_exception(repo.load, report_csv)
 
         # then
-        self.assertIsInstance(e, InvalidTradeError)
+        self.assertIsInstance(expected_error, InvalidTradeError)
 
     def test_read_barter_trade_raises_error(self) -> None:
+        """ Trades PHYS for PSLV. This should be CORPORATE ACTION, not TRADE """
+
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
@@ -58,10 +60,10 @@ class TradesRepoCSVTest(unittest.TestCase):
         repo = TradesRepoCSV()
 
         # when
-        e = capture_exception(repo.load, report_csv)
+        expected_error = capture_exception(repo.load, report_csv)
 
         # then
-        self.assertIsInstance(e, InvalidTradeError)
+        self.assertIsInstance(expected_error, InvalidTradeError)
 
     def test_read_empty_repo_success(self) -> None:
         # given
@@ -218,12 +220,17 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
 
-    def test_read_autoconversion_success(self) -> None:
+    def test_read_buy_autoconversion_success(self) -> None:
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"10"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-06-24 19:52:01"	"2.5"	"SGD"	"1.54"	"None"',
-            '"11"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-06-24 19:52:01"	"-1.88"	"USD"	"-1.55"	"None"',
+            '"1"	"TBA0174.001"	"CLR.SGX"	"TRADE"	"2020-12-08 06:27:21"	"1300"	"CLR.SGX"	"857.24"	"None"',
+            '"2"	"TBA0174.001"	"CLR.SGX"	"TRADE"	"2020-12-08 06:27:21"	"-1388.4"	"SGD"	"-857.24"	"None"',
+            '"3"	"TBA0174.001"	"CLR.SGX"	"COMMISSION"	"2020-12-08 06:27:21"	"-2.5"	"SGD"	"-1.54"	"None"',
+            '"4"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"1388.4"	"SGD"	"857.24"	"None"',
+            '"5"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-1040.98"	"USD"	"-858.95"	"None"',
+            '"6"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"2.5"	"SGD"	"1.54"	"None"',
+            '"7"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-1.88"	"USD"	"-1.55"	"None"',
         ]
         repo = TradesRepoCSV()
 
@@ -232,18 +239,24 @@ class TradesRepoCSVTest(unittest.TestCase):
 
         # then
         self.assertEqual(len(repo.items), 1)
-        assert isinstance(repo.items[0], AutoConversionItem)
-        item: AutoConversionItem = repo.items[0]
-        self.assertEqual(item.conversion_from, Money("1.88", "USD"))
-        self.assertEqual(item.conversion_to, Money("2.5", "SGD"))
-        self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
-        self.assertEqual(item.transaction_id, 10)
+        assert isinstance(repo.items[0], BuyItem)
+        item: BuyItem = repo.items[0]
+        self.assertEqual(item.asset_name, "CLR.SGX")
+        self.assertEqual(item.amount, Decimal("1300"))
+        self.assertEqual(item.paid, Money("1388.4", "SGD"))
+        self.assertEqual(item.commission, Money("2.5", "SGD"))
+        self.assertEqual(item.date, datetime(2020, 12, 8, 6, 27, 21))
+        self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.autoconversions[0].conversion_from, Money("1040.98", "USD"))
+        self.assertEqual(item.autoconversions[0].conversion_to, Money("1388.4", "SGD"))
+        self.assertEqual(item.autoconversions[1].conversion_from, Money("1.88", "USD"))
+        self.assertEqual(item.autoconversions[1].conversion_to, Money("2.5", "SGD"))
 
     def test_read_dividend_without_tax_success(self) -> None:
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"None"',
+            '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"Dividend source"',
         ]
         repo = TradesRepoCSV()
 
@@ -255,16 +268,17 @@ class TradesRepoCSVTest(unittest.TestCase):
         assert isinstance(repo.items[0], DividendItem)
         item: DividendItem = repo.items[0]
         self.assertEqual(item.received_dividend, Money("100", "USD"))
-        self.assertEqual(item.paid_tax.amount, Decimal("0"))
+        self.assertEqual(item.paid_tax, Money("0", "USD"))
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
+        self.assertEqual(item.comment, "Dividend source")
 
     def test_read_dividend_with_tax_success(self) -> None:
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"None"',
-            '"11"	"TBA0174.001"	"IEF.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15"	"USD"	"-12"	"None"',
+            '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"Dividend source"',
+            '"11"	"TBA0174.001"	"IEF.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15"	"USD"	"-12"	"Tax Comment"',
         ]
         repo = TradesRepoCSV()
 
@@ -279,6 +293,7 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.paid_tax, Money("15", "USD"))
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
+        self.assertEqual(item.comment, "Dividend source")
 
     def test_read_tax_success(self) -> None:
         # given
@@ -299,7 +314,30 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
 
-    def test_read_input_descending_result_ascending_success(self) -> None:
+    def test_read_corporate_action_success(self) -> None:
+        # given
+        report_csv = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"10"	"TBA0174.001"	"IEF.ARCA"	"CORPORATE ACTION"	"2020-06-24 19:52:01"	"-20"	"IEF.ARCA"	"-2027.87"	"IEF.ARCA to IEF.NASDAQ"',
+            '"11"	"TBA0174.001"	"IEF.NASDAQ"	"CORPORATE ACTION"	"2020-06-24 19:52:01"	"20"	"IEF.NASDAQ"	"2063.21"	"IEF.ARCA to IEF.NASDAQ"',
+        ]
+        repo = TradesRepoCSV()
+
+        # when
+        repo.load(report_csv, "\t")
+
+        # then
+        self.assertEqual(len(repo.items), 1)
+        assert isinstance(repo.items[0], CorporateActionItem)
+        item: CorporateActionItem = repo.items[0]
+        self.assertEqual(item.from_share.symbol, "IEF.ARCA")
+        self.assertEqual(item.from_share.amount, Decimal(20))
+        self.assertEqual(item.to_share.symbol, "IEF.NASDAQ")
+        self.assertEqual(item.to_share.amount, Decimal(20))
+        self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
+        self.assertEqual(item.transaction_id, 10)
+
+    def test_read_input_descending_result_ascending_by_date_success(self) -> None:
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',

@@ -1,0 +1,22 @@
++-----------------+               +---------------+        +--------+                                 +--------+
+|                 |               |               |        |        |                                 |        |
+| Report CSV file +---------------> TradesRepoCSV +--------> Trader +---------------------------------> Wallet +---->+owned_assets
+|                 |   csv lines   |               |  items |        | buy/sell/fund/withdraw/exchange |        |
++-----------------+               +---------------+        +----+---+                          f       +--------+
+                                                                |
+                                                                |
+                                                       buy/sell |
+                                                                |
+                                                        +-------v--------+
+                                                        |                |
++-------------------------------------------------------+ BuySellMatcher |
+|                       BuySellPairs                    |                |
+|                                                       +----------------+
+|
+|
+|
+|  +------------------------+                          +------------------+                 +---------------+
+|  |                        |  buy+sell pairs in pln   |                  |  gain or loss   |               +---->+total_profit
++--> BuySellPairPLNQuotator +--------------------------> ProfitCalculator +-----------------> TaxCalculator |
+   |                        |  BuySellPairsPLNQuoted   |                  |   ProfitItems   |               +---->+total_tax
+   +------------------------+                          +------------------+                 +---------------+

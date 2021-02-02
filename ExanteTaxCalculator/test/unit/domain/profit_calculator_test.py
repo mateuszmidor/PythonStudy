@@ -4,104 +4,156 @@ from datetime import date
 from decimal import Decimal
 
 from src.domain.profit_calculator import ProfitCalculator
-from src.domain.buy_sell_pair_pln import BuySellPairPLN
+from src.domain.transactions.buy_item import BuyItem
+from src.domain.transactions.sell_item import SellItem
+from src.domain.trading.buy_sell_pair import BuySellPair
+from src.domain.quotation.buy_sell_pair_pln import BuySellPairPLN
 
 
 def USD(amount: float) -> Money:
-    return Money(str(amount), "USD")
+    return Money(amount, "USD")
 
 
 def PLN(amount: float) -> Money:
-    return Money(str(amount), "PLN")
+    return Money(amount, "PLN")
+
+
+def newBuySellPLN(
+    buy_amount,
+    sell_amount,
+    amount_sold: Decimal,
+    buy_paid_pln,
+    buy_commission_pln,
+    sell_received_pln,
+    sell_commission_pln: Decimal,
+) -> BuySellPairPLN:
+    return BuySellPairPLN(
+        source=BuySellPair(
+            buy=BuyItem(
+                asset_name="-",
+                amount=buy_amount,
+                paid=USD(0),
+                commission=USD(0),
+            ),
+            sell=SellItem(
+                asset_name="-",
+                amount=sell_amount,
+                received=USD(0),
+                commission=USD(0),
+            ),
+            amount_sold=amount_sold,
+        ),
+        buy_pln_quotation_date=date(2000, 12, 19),
+        buy_paid_pln=buy_paid_pln,
+        buy_commission_pln=buy_commission_pln,
+        sell_pln_quotation_date=date(2000, 12, 20),
+        sell_received_pln=sell_received_pln,
+        sell_commission_pln=sell_commission_pln,
+    )
 
 
 class ProfitCalculatorTest(unittest.TestCase):
-    def test_full_sell_profit(self):
+    def test_buy_100_sell_100_different_quotation(self):
         # given
-        taxable = BuySellPairPLN(
-            asset_name="PHYS",
+        taxable = newBuySellPLN(
             buy_amount=100,
-            buy_paid=USD(1000),
-            buy_commission=USD(1),
-            buy_date=date(2000, 12, 20),
-            buy_transaction_id=1,
             sell_amount=100,
-            sell_received=USD(1000),
-            sell_commission=USD(1),
-            sell_date=date(2000, 12, 21),
-            sell_transaction_id=2,
-            buy_pln_quotation_date=date(2000, 12, 19),
+            amount_sold=100,
             buy_paid_pln=Decimal(3000),  # PLN/USD = 3
             buy_commission_pln=Decimal(3),
-            sell_pln_quotation_date=date(2000, 12, 20),
             sell_received_pln=Decimal(4000),  # PLN/USD = 4
             sell_commission_pln=Decimal(4),
         )
+
         calculator = ProfitCalculator()
 
         # when
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = 4000 - 4 - (3000 + 3) * 100 / 100
+        expected_profit = (4000 - 4) * 100 / 100 - (3000 + 3) * 100 / 100
         self.assertEqual(profit.profit, PLN(expected_profit))
 
-    def test_half_sell_profit(self):
+    def test_buy_100_sell_50_different_quotation(self):
         # given
-        taxable = BuySellPairPLN(
-            asset_name="PHYS",
+        taxable = newBuySellPLN(
             buy_amount=100,
-            buy_paid=USD(1000),
-            buy_commission=USD(1),
-            buy_date=date(2000, 12, 20),
-            buy_transaction_id=1,
             sell_amount=50,
-            sell_received=USD(500),
-            sell_commission=USD(1),
-            sell_date=date(2000, 12, 21),
-            sell_transaction_id=2,
-            buy_pln_quotation_date=date(2000, 12, 19),
+            amount_sold=50,
             buy_paid_pln=Decimal(3000),  # PLN/USD = 3
             buy_commission_pln=Decimal(3),
-            sell_pln_quotation_date=date(2000, 12, 20),
-            sell_received_pln=Decimal(2000),  # PLN/USD = 4, half assets sold so 2000PLN received
+            sell_received_pln=Decimal(2000),  # PLN/USD = 4
             sell_commission_pln=Decimal(4),
         )
+
         calculator = ProfitCalculator()
 
         # when
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = 2000 - 4 - (3000 + 3) * 50 / 100
+        expected_profit = (2000 - 4) * 50 / 50 - (3000 + 3) * 50 / 100
         self.assertEqual(profit.profit, PLN(expected_profit))
 
-    def test_quater_sell_profit(self):
+    def test_buy_50_sell_100_different_quotation(self):
         # given
-        taxable = BuySellPairPLN(
-            asset_name="PHYS",
-            buy_amount=100,
-            buy_paid=USD(1000),
-            buy_commission=USD(1),
-            buy_date=date(2000, 12, 20),
-            buy_transaction_id=1,
-            sell_amount=25,
-            sell_received=USD(250),
-            sell_commission=USD(1),
-            sell_date=date(2000, 12, 21),
-            sell_transaction_id=2,
-            buy_pln_quotation_date=date(2000, 12, 19),
-            buy_paid_pln=Decimal(3000),  # PLN/USD = 3
+        taxable = newBuySellPLN(
+            buy_amount=50,
+            sell_amount=100,
+            amount_sold=50,
+            buy_paid_pln=Decimal(1500),  # PLN/USD = 3
             buy_commission_pln=Decimal(3),
-            sell_pln_quotation_date=date(2000, 12, 20),
-            sell_received_pln=Decimal(1000),  # PLN/USD = 4, quater assets sold so 1000PLN received
+            sell_received_pln=Decimal(4000),  # PLN/USD = 4
             sell_commission_pln=Decimal(4),
         )
+
         calculator = ProfitCalculator()
 
         # when
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = 1000 - 4 - (3000 + 3) * 25 / 100
+        expected_profit = (4000 - 4) * 50 / 100 - (1500 + 3) * 50 / 50
+        self.assertEqual(profit.profit, PLN(expected_profit))
+
+    def test_buy_100_sell_200_sold_25_different_quotation(self):
+        # given
+        taxable = newBuySellPLN(
+            buy_amount=100,
+            sell_amount=200,
+            amount_sold=25,
+            buy_paid_pln=Decimal(3000),  # PLN/USD = 3
+            buy_commission_pln=Decimal(3),
+            sell_received_pln=Decimal(8000),  # PLN/USD = 4
+            sell_commission_pln=Decimal(4),
+        )
+
+        calculator = ProfitCalculator()
+
+        # when
+        profit = calculator.calc_profit(taxable)
+
+        # then
+        expected_profit = (8000 - 4) * 25 / 200 - (3000 + 3) * 25 / 100
+        self.assertEqual(profit.profit, PLN(expected_profit))
+
+    def test_buy_200_sell_100_sold_25_different_quotation(self):
+        # given
+        taxable = newBuySellPLN(
+            buy_amount=200,
+            sell_amount=100,
+            amount_sold=25,
+            buy_paid_pln=Decimal(6000),  # PLN/USD = 3
+            buy_commission_pln=Decimal(3),
+            sell_received_pln=Decimal(4000),  # PLN/USD = 4
+            sell_commission_pln=Decimal(4),
+        )
+
+        calculator = ProfitCalculator()
+
+        # when
+        profit = calculator.calc_profit(taxable)
+
+        # then
+        expected_profit = (4000 - 4) * 25 / 100 - (6000 + 3) * 25 / 200
         self.assertEqual(profit.profit, PLN(expected_profit))

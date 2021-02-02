@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from money import Money
 from decimal import Decimal
 from dataclasses import dataclass
@@ -8,5 +8,5 @@ from dataclasses import dataclass
 class WithdrawalItem:
     withdrawal_amount: Money
     # common transaction item data
-    date: datetime.date = datetime.date(1970, 1, 1)
+    date: datetime = datetime(1970, 1, 1)
     transaction_id: int = 0

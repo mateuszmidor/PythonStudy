@@ -10,10 +10,16 @@ from src.infrastructure.errors import InvalidReportRowError
 @dataclass
 class ReportRow:
     class OperationType(Enum):
+        """ Names reflect Exante Transaction Report 'Operation type' column """
+
         UNKNOWN = "UNKNOWN"
         TRADE = "TRADE"
         COMMISSION = "COMMISSION"
         FUNDING_WITHDRAWAL = "FUNDING/WITHDRAWAL"
+        AUTOCONVERSION = "AUTOCONVERSION"
+        DIVIDEND = "DIVIDEND"
+        TAX = "TAX"
+        CORPORATE_ACTION = "CORPORATE ACTION"
 
     transaction_id: int
     account_id: str
@@ -37,6 +43,9 @@ class ReportRow:
 
         if self.asset == "":
             raise InvalidReportRowError("asset should not be empty")
+
+        if self.sum == 0:
+            raise InvalidReportRowError("sum should not be zero")
 
     @classmethod
     def from_dict(cls, d: Dict[str, str]):

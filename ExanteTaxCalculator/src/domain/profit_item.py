@@ -1,12 +1,23 @@
 from decimal import Decimal
 from money import Money
-from typing import Optional
 
-from src.domain.taxable_item_pln_quoted import TaxableItemPLNQuoted
+from src.domain.quotation.buy_sell_pair_pln import BuySellPairPLN
+
 
 class ProfitPLN:
-    def __init__(self, profit: Decimal, source_transaction_pair: Optional[TaxableItemPLNQuoted] = None) -> None:
-        self.profit = Money(profit, "PLN")
-        self.source_transaction_pair = source_transaction_pair
+    """ Note: Profit can also be negative if transaction resulted in loss of money """
+
+    def __init__(self, source: BuySellPairPLN, profit: Decimal) -> None:
+        self._source = source
+        self._profit = Money(profit, "PLN")
+
+    @property
+    def profit(self) -> Money:
+        return self._profit
+
+    @property
+    def source(self) -> BuySellPairPLN:
+        return self._source
+
 
 ProfitItem = ProfitPLN

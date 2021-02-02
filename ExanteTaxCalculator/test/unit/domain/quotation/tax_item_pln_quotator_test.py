@@ -7,7 +7,7 @@ from money import Money
 from src.utils.capture_exception import capture_exception
 from src.domain.errors import NoQuotesAvailableError
 from src.domain.currency import Currency
-from src.domain.transaction_items.tax_item import TaxItem
+from src.domain.transactions.tax_item import TaxItem
 from src.domain.quotation.tax_item_pln_quotator import TaxItemPLNQuotator
 
 
@@ -94,6 +94,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         item = quotator.quote(tax)
 
         # then
+
         self.assertEqual(item.tax_pln_quotation_date, datetime.date(2000, 12, 23))
         self.assertEqual(item.paid_tax_pln, Decimal(45))  # 15 * 3 USD/PLN
 

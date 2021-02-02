@@ -1,0 +1,37 @@
+@startuml Calculation
+
+title From Report.csv to Totals
+!pragma useVerticalIf off
+
+start
+    :transaction_items = repo.load_from_csv_file\nmatcher = BuySellItemsMatcher();
+    :dividends = []\ntaxes = [];
+    ' if (load successful?) then (no)
+    '     :print failure;
+    '     stop
+    ' else (yes)
+    ' endif
+
+    partition "Process TransactionItems" {
+        while (has more items?) is (yes)
+            :pop item from items;
+            :pass:\n-funding\n-exchange\n-buy\n-sell\n-autoconversion\n-dividend\n-tax\n-corporateaction\n-withdrawal\n item to wallet/matcher/dividends/taxes;
+            ' if (deserialization successful?) then (yes)
+            '     #lightgreen:http request user create;
+            ' else (no)
+            '     #red:log error;
+            ' endif
+        endwhile (no)
+    }
+    :trades = matcher.items;
+    partition "Quote to PLN" {
+      :trades_pln = quote(trades);
+      :dividends_pln = quote(dividends);
+      :taxes_pln = quote(taxes);
+    }
+    partition "Calc profits and taxes" {
+      :calc = TaxProfitCalculator(tax_percentage);
+      :total_profit, total_tax, paid_tax = calc(trades_pln, dividends_pln, taxes_pln);
+    }
+stop
+@enduml
