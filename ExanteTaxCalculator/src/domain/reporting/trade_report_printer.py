@@ -34,24 +34,55 @@ class TradeReportPrinter:
         self._items.append(item)
 
     def format_profit(self, item: ProfitPLN) -> None:
-        format_str = "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}, {} x {}"
+        format_str = "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}, {} x {}, PLN/USD buy: {:0.4f}, PLN/USD sell: {:0.4f}, Buy Q Date: {:%d-%m-%Y}, Sell Q Date: {:%d-%m-%Y}"
         profit_str = format_str.format(
-            "BUY/SELL Profit: ", item.profit.amount, item.source.source.sell.date, item.source.source.amount_sold, item.source.source.sell.asset_name
+            "BUY/SELL Profit: ",
+            item.profit.amount,
+            item.source.source.sell.date,
+            item.source.source.amount_sold,
+            item.source.source.sell.asset_name,
+            item.source.buy_paid_pln / item.source.source.buy.paid.amount,
+            item.source.sell_received_pln / item.source.source.sell.received.amount,
+            item.source.buy_pln_quotation_date,
+            item.source.sell_pln_quotation_date,
         )
         self._append(profit_str)
 
     def format_tax(self, item: TaxItemPLN) -> None:
-        tax_str = _format_tax(tax_pln=item.paid_tax_pln, when=item.source.date)
+        tax_str = _format_tax(
+            tax_pln=item.paid_tax_pln,
+            when=item.source.date,
+            pln_quotation_value=item.paid_tax_pln / item.source.paid_tax.amount,
+            pln_quotation_date=item.tax_pln_quotation_date,
+        )
         self._append(tax_str)
 
     def format_dividend(self, item: DividendItemPLN) -> None:
-        format_str = "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}, {}"
-        dividend_str = format_str.format("DIVIDEND Received: ", item.received_dividend_pln, item.source.date, item.source.comment)
+        format_str = "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}, PLN/USD: {:0.4f}, Q Date: {:%d-%m-%Y} {}"
+        dividend_str = format_str.format(
+            "DIVIDEND Received: ",
+            item.received_dividend_pln,
+            item.source.date,
+            item.received_dividend_pln / item.source.received_dividend.amount,
+            item.dividend_pln_quotation_date,
+            item.source.comment,
+        )
         self._append(dividend_str)
         if item.paid_tax_pln != 0:
-            tax_str = _format_tax(tax_pln=item.paid_tax_pln, when=item.source.date)
+            tax_str = _format_tax(
+                tax_pln=item.paid_tax_pln,
+                when=item.source.date,
+                pln_quotation_value=item.paid_tax_pln / item.source.paid_tax.amount,
+                pln_quotation_date=item.tax_pln_quotation_date,
+            )
             self._append(tax_str)
 
 
-def _format_tax(tax_pln: Decimal, when: datetime) -> str:
-    return "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}".format("TAX Paid: ", tax_pln, when)
+def _format_tax(tax_pln: Decimal, when: datetime, pln_quotation_value: Decimal, pln_quotation_date: datetime) -> str:
+    return "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}, PLN/USD: {:0.4f}, Q Date: {:%d-%m-%Y}".format(
+        "TAX Paid: ",
+        tax_pln,
+        when,
+        pln_quotation_value,
+        pln_quotation_date,
+    )

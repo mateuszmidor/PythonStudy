@@ -539,4 +539,4 @@ class TraderTest(unittest.TestCase):
         print("total tax:", trader.total_tax)
         print("paid tax:", trader.tax_already_paid)
         # print(trader.owned_asssets["CLR.SGX"], trader.owned_asssets["SGD"])
-        self.assertEqual(1, 0)
+        # self.assertEqual(1, 0)

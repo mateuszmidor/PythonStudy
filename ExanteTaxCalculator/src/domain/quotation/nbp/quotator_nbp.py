@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import Optional, Callable
+from http import HTTPStatus
+from typing import Optional, Callable, Tuple
 from datetime import datetime
 from decimal import Decimal
 
@@ -15,7 +16,24 @@ from src.domain.currency import Currency
 # 404 NotFound - Not Found - Brak danych
 
 
-UrlFetcher = Callable[[str], str]  # input: url string, output: body string
+UrlFetcher = Callable[[str], Tuple[str, HTTPStatus]]
+""" 
+UrlFetcher is abstraction over http.get(url).
+
+input: url string
+output: body string, HTTPStatus. 
+Eg. ("Not Found", 404)
+
+Below example implementation:
+
+@cache
+def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
+    try:
+        with urllib.request.urlopen(url) as response:
+            return response.read(), HTTPStatus.OK
+    except urllib.request.HTTPError as err:
+        return err.read(), err.code
+"""
 
 
 class QuotatorNBP:
@@ -34,17 +52,17 @@ class QuotatorNBP:
         """ Implements QuotesProviderProtocol """
 
         url = self._make_url(currency, date)
-        try:
-            return self._read_average_pln(url)
-        except Exception as e:
-            self._logger.error(e)
-            return None
+        # try:
+        return self._read_average_pln(url)
+        # except Exception as e:
+        #     self._logger.exception(e)
+        #     return None
 
     def _make_url(self, currency: str, date: datetime.date) -> str:
         nbp_date = date.strftime("%Y-%m-%d")
         return QuotatorNBP.URL.format(currency=currency, date=nbp_date)
 
-    def _read_average_pln(self, url: str) -> Decimal:
+    def _read_average_pln(self, url: str) -> Optional[Decimal]:
         # NBP single quotation date format:
         # {
         #     "table": "A",
@@ -58,10 +76,16 @@ class QuotatorNBP:
         #         }
         #     ]
         # }
-        try:
-            body = self._fetcher(url)
-        except Exception as e:
-            raise ValueError(f"Failed fetching URL: {URL}") from e
+
+        # try:
+        body, code = self._fetcher(url)
+        # except Exception as e:
+        #     raise ValueError(f"Failed fetching URL: {url}") from e
+
+        if code != HTTPStatus.OK:
+            # if code == HTTPStatus.NOT_FOUND:  # NOT FOUND is expected on weekends
+            return None
+            # raise ValueError(body)
 
         try:
             data = json.loads(body)

@@ -1,19 +1,23 @@
 import unittest
+import pytest
+from http import HTTPStatus
 from decimal import Decimal
 from datetime import datetime
 from unittest.mock import create_autospec
 
 from src.domain.quotation.nbp.quotator_nbp import QuotatorNBP, UrlFetcher
 
+NOT_FOUND_404 = ("404 Not Found", HTTPStatus.NOT_FOUND)
+
 
 class QuotatorNBPTest(unittest.TestCase):
-    def test_correct_url_formed(self) -> None:
+    def test_correct_url_formed_for_currency_and_date(self) -> None:
         # given
-        expected_url = "http://api.nbp.pl/api/exchangerates/rates/a/USD/2020-05-16"
         currency = "USD"
-        date = datetime(2020, 5, 16)  # saturday, no quotes for weekend days
+        date = datetime(2020, 5, 16)  # saturday, no quotes for weekend days, so return error 404
+        expected_url = "http://api.nbp.pl/api/exchangerates/rates/a/{:s}/{:%Y-%m-%d}".format(currency, date)
         fetcher = create_autospec(UrlFetcher)
-        fetcher.side_effects = Exception("404")
+        fetcher.return_value = NOT_FOUND_404
         quotator = QuotatorNBP(fetcher)
 
         # when
@@ -22,12 +26,12 @@ class QuotatorNBPTest(unittest.TestCase):
         # then
         fetcher.assert_called_with(expected_url)
 
-    def test_http_exception_response_returns_none(self) -> None:
+    def test_http_404_response_returns_none(self) -> None:
         # given
         currency = "USD"
         date = datetime(2020, 5, 16)  # saturday, no quotes for weekend days
         fetcher = create_autospec(UrlFetcher)
-        fetcher.side_effects = Exception("404")
+        fetcher.return_value = NOT_FOUND_404
         quotator = QuotatorNBP(fetcher)
 
         # when
@@ -36,7 +40,7 @@ class QuotatorNBPTest(unittest.TestCase):
         # then
         assert pln_to_usd is None
 
-    def test_invalid_response_returns_none(self) -> None:
+    def test_invalid_response_throws_exception(self) -> None:
         # given
         # should be: "mid", not "middle"
         response_body = """
@@ -56,14 +60,12 @@ class QuotatorNBPTest(unittest.TestCase):
         currency = "USD"
         date = datetime(2020, 5, 15)  # friday
         fetcher = create_autospec(UrlFetcher)
-        fetcher.return_value = response_body
+        fetcher.return_value = (response_body, HTTPStatus.OK)
         quotator = QuotatorNBP(fetcher)
 
-        # when
-        pln_to_usd = quotator.get_average_pln_for_day(currency, date)
-
-        # then
-        assert pln_to_usd is None
+        # when - then
+        with pytest.raises(Exception):
+            pln_to_usd = quotator.get_average_pln_for_day(currency, date)
 
     def test_correct_response_returns_quotation(self) -> None:
         # given
@@ -84,7 +86,7 @@ class QuotatorNBPTest(unittest.TestCase):
         currency = "USD"
         date = datetime(2020, 5, 15)  # friday
         fetcher = create_autospec(UrlFetcher)
-        fetcher.return_value = response_body
+        fetcher.return_value = (response_body, HTTPStatus.OK)
         quotator = QuotatorNBP(fetcher)
 
         # when
