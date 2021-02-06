@@ -107,3 +107,10 @@ TaxToPay = TotalTaxDue - TaxAlreadyPayed, includes BuySell 19% taxes and 4% comp
 
 # for fun
 ToWithdrawAndParty = TotalProfit - TaxToPay
+
+
+## CRYPTO
+
+- cant collectively calc tax from crypto and other investments
+- separate place on declaration sto testify crypto cost and profit  
+- crypto exchange for another crypto is not subject to tax, only sell for real money
