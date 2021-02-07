@@ -86,6 +86,5 @@ function tearDown() {
 
 checkPrerequsites
 setupVirtualEnv
-checkWithMyPy
-[[ $1 == "--test" ]] && runTests || runProgram $@
+[[ $1 == "--test" ]] && checkWithMyPy && runTests || runProgram $@
 tearDown
