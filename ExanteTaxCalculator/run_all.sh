@@ -37,7 +37,7 @@ function setupVirtualEnv() {
 
     if [[ ! -d venv ]]; then 
         # install and initialize virtual env
-        sudo $PIP install -U virtualenv  # system-wide install
+        $PIP install virtualenv
         virtualenv -p $PYTHON ./venv
         source ./venv/bin/activate 
 
@@ -62,7 +62,7 @@ function checkWithMyPy() {
 function runProgram() {
     stage "Running program"
 
-    $PYTHON src/main.py
+    $PYTHON calculator.py $@
 
     echo "Done"
 }
@@ -71,7 +71,7 @@ function runTests() {
     stage "Running unit tests"
 
     # pytest --cov-report term-missing --cov=src src/ test/
-    pytest src/ test/
+    pytest src test
 
     echo "Done"
 }
@@ -87,5 +87,5 @@ function tearDown() {
 checkPrerequsites
 setupVirtualEnv
 checkWithMyPy
-[[ $1 == "--test" ]] && runTests || runProgram
+[[ $1 == "--test" ]] && runTests || runProgram $@
 tearDown
