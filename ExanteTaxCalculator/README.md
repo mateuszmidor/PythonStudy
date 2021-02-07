@@ -1,12 +1,23 @@
 # Exante trading tax calculator for polish tax declaration
 
+## Input needed for tax declaration
+
+- total income = sum of money from sells + dividends ("Przychód")
+- total cost = sum of money paid for buys that are pairedd with sells ("Koszty uzyskania przychodu")
+- net profit = total cost - total income ("Dochód")
+- previus years loss ("Strata z lat ubiegłych")
+- tax base = net profit - previus years loss ("Podstawa obliczenia podatku")
+- total tax = 19% * tax base ("Podatek od dochodów")
+- tax already paid ("Podatek zapłacony za granicą")
+- tax yet to pay = max(total tax - tax already paid, 0) ("Podatek należny")
+
 ## Calculation rules
 
 Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-zagranicznej-i-zysk-na-akcjach-jaki-pit>:
 
 - There is 19% tax to be collected from item sell income (only when sell was profitable)
 - There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and  pay additional 4%
-- It is calculated in PLN, so need to convert trade currency->PLN for all: buy, sell, dividend, tax
+- Tax is calculated in PLN, so need to convert trade currency->PLN for all: buy, sell, dividend, tax
 - Quotation average by NBP from previous working day should be used for buy and sell, dividend and tax
 - Profit for sell items is calculated in FIFO manner, eg.
   - Buy  (10 x 100USD - commission), convert to PLN using quotations from prev working day
@@ -70,48 +81,37 @@ Note: usually TAX follows DIVIDEND, buy sometimes:
 
 ??? should currency exchange eur->usd, then usd->eur be subject to 19% tax???
 
-Operations:
-  - "TRADE"
-  - "COMMISSION"
+Operations listed in report:
   - "FUNDING/WITHDRAWAL"
+  - "TRADE" (covers money exchange)
+  - "COMMISSION" (optional, no commission in case of exchange)
   - "AUTOCONVERSION"
   - "DIVIDEND"
   - "TAX"
   - "CORPORATE ACTION"
 
+Glossary:
+- money - currency with 3 characters symbol like USD, CAD, EUR
+- share - you buy it for money, many characters symbol like SHY.ARCA
+- asset - money or shares, reported in column "Asset"
+
+Operations on wallet:
+- funding - add money to wallet
+- withdrawal - remove money from wallet
+- exchange - exchange of money; one currency for another
+- autoconversion - automatically exchange one currency for another (happens with buy when needed currency is not in wallet)
+- buy - buy shares for money
+- sell - sell shares for money
+- corporate action - rename shares
+- dividend - add money, optionally also add tax
+- tax - add tax
+
 AutoConversion - like currency exchange but OperationType is AUTOCONVERSION instead of TRADE
     NOTICE: Autoconversion is triggered automatically by other kind of operation that needs money, eg
     in case of trade there can be autoconversino to cover the shares cost and another autoconversion for the commission
 
-Rules:
-- cant withdraw curency if no enough currency
-- cant exchange currency if no enough FROM currency
-- cant buy asset if no enough currency
-- cant sell asset if no enough of that asset
 
 
-BuySellProfitLoss = profits(loses) from buy-sell items
-DividendProfit = profit from dividend items
-TotalProfit = BuySellProfitLoss + DividendProfit
-TotalTaxDue = 19% * TotalProfit
-TaxAlreadyPayed = tax from Dividends(15%) + Freestanding taxes(probably also from dividends but delayed)
-TaxToPay = TotalTaxDue - TaxAlreadyPayed, includes BuySell 19% taxes and 4% complement tax for dividends
-ToWithdrawAndParty = TotalProfit - TaxToPay
-
-### more like a code
-
-1. Collect BuySellItems, DividendItems, TaxItems
-2. Quote the above and receive BuySellItemsPLN, DividendItemsPLN, TaxItemsPLN
-3. from BuySellItemsPLN calc ProtifItemsPLN
-
-# tax calculator
-TotalProfit = sum(ProfitItemsPLN) + sum(DividendItemsPLN)
-TotalTaxDue = 19% * TotalProfit
-TaxAlreadyPayed = sum(TaItemsPLN)
-TaxToPay = TotalTaxDue - TaxAlreadyPayed, includes BuySell 19% taxes and 4% complement tax for dividends
-
-# for fun
-ToWithdrawAndParty = TotalProfit - TaxToPay
 
 
 ## CRYPTO
