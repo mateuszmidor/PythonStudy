@@ -1,7 +1,7 @@
 import json
 import logging
 from http import HTTPStatus
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Mapping, Any
 from datetime import datetime
 from decimal import Decimal
 
@@ -63,19 +63,6 @@ class QuotatorNBP:
         return QuotatorNBP.URL.format(currency=currency, date=nbp_date)
 
     def _read_average_pln(self, url: str) -> Optional[Decimal]:
-        # NBP single quotation date format:
-        # {
-        #     "table": "A",
-        #     "currency": "dolar amerykański",
-        #     "code": "USD",
-        #     "rates": [
-        #         {
-        #         "no": "009/A/NBP/2021",
-        #         "effectiveDate": "2021-01-15",
-        #         "mid": 3.7466
-        #         }
-        #     ]
-        # }
 
         # try:
         body, code = self._fetcher(url)
@@ -92,6 +79,23 @@ class QuotatorNBP:
         except Exception as e:
             raise ValueError(f"Invalid JSON received from NBP for URL: {body}, {url}") from e
 
+        return QuotatorNBP._extract_average_pln(data)
+
+    @staticmethod
+    def _extract_average_pln(data: Mapping[str, Any]) -> Decimal:
+        # NBP single quotation date format:
+        # {
+        #     "table": "A",
+        #     "currency": "dolar amerykański",
+        #     "code": "USD",
+        #     "rates": [
+        #         {
+        #         "no": "009/A/NBP/2021",
+        #         "effectiveDate": "2021-01-15",
+        #         "mid": 3.7466
+        #         }
+        #     ]
+        # }
         try:
             return Decimal(data["rates"][0]["mid"])
         except Exception as e:

@@ -9,7 +9,10 @@ class ProfitCalculator:
     def calc_profit(self, taxable: BuySellPairPLN) -> ProfitItem:
         amount_sold = taxable.source.amount_sold
         # amount_sold = min(taxable.buy.amount, taxable.sell.amount) # this is faulty calcultion for testing purpose
+
+        # the commission already increases the cost
         paid = (taxable.buy_paid_pln + taxable.buy_commission_pln) * amount_sold / taxable.source.buy.amount
+
+        # the commission already decreases the income
         received = (taxable.sell_received_pln - taxable.sell_commission_pln) * amount_sold / taxable.source.sell.amount
-        # profit = received - paid
         return ProfitItem(source=taxable, paid=paid, received=received)
