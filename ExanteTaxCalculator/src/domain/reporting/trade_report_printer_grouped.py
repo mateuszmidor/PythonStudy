@@ -70,13 +70,12 @@ class TradeReportPrinterGrouped:
         self._append(profit_str, item.source.source.sell.asset_name)
 
     def format_tax(self, item: TaxItemPLN) -> None:
-        tax_str = _format_tax(
+        self._format_tax(
             tax_pln=item.paid_tax_pln,
             tax=item.source.paid_tax,
             when=item.source.date,
             pln_quotation_date=item.tax_pln_quotation_date,
         )
-        self._append(tax_str, "PODATKI")
 
     def format_dividend(self, item: DividendItemPLN) -> None:
         # Z/S:     4.94 PLN =     1.32 USD * 3.7400 PLN/USD (2020-07-06, D-1: 2020-07-05), 12.0 shares 2020-07-01 dividend IEF.ARCA 1.32 USD (0.110052 per share)
@@ -92,27 +91,26 @@ class TradeReportPrinterGrouped:
             item.dividend_pln_quotation_date,
             item.source.comment,
         )
-        self._append(dividend_str, "DYWIDENDY")
+        self._append(dividend_str, "1. DYWIDENDY")
         if item.paid_tax_pln != 0:
-            tax_str = _format_tax(
+            self._format_tax(
                 tax_pln=item.paid_tax_pln,
                 tax=item.source.paid_tax,
                 when=item.source.date,
                 pln_quotation_date=item.tax_pln_quotation_date,
             )
-            self._append(tax_str, "PODATKI")
 
-
-def _format_tax(tax_pln: Decimal, tax: Money, when: datetime, pln_quotation_date: datetime) -> str:
-    # Z/S:    -0.52 PLN =    -0.14 USD * 3.7400 PLN/USD (2020-07-16, D-1: 2020-07-15)
-    format_str = "Z/S: {:8.2f} PLN = {:8.2f} {} * {:0.4f} PLN/{} ({:%Y-%m-%d}, D-1: {:%Y-%m-%d})"
-    tax_quotation = tax_pln / tax.amount
-    return format_str.format(
-        -tax_pln,
-        -tax.amount,
-        tax.currency,
-        tax_quotation,
-        tax.currency,
-        when,
-        pln_quotation_date,
-    )
+    def _format_tax(self, tax_pln: Decimal, tax: Money, when: datetime, pln_quotation_date: datetime) -> None:
+        # Z/S:    -0.52 PLN =    -0.14 USD * 3.7400 PLN/USD (2020-07-16, D-1: 2020-07-15)
+        format_str = "Z/S: {:8.2f} PLN = {:8.2f} {} * {:0.4f} PLN/{} ({:%Y-%m-%d}, D-1: {:%Y-%m-%d})"
+        tax_quotation = tax_pln / tax.amount
+        tax_string = format_str.format(
+            -tax_pln,
+            -tax.amount,
+            tax.currency,
+            tax_quotation,
+            tax.currency,
+            when,
+            pln_quotation_date,
+        )
+        self._append(tax_string, "2. PODATKI")
