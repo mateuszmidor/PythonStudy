@@ -17,28 +17,38 @@ class TaxCalculatorTest(unittest.TestCase):
         calc = TaxCalculator(19)
 
         # when
-        total_profit, total_tax, paid_tax = calc.calc_profit_tax(
-            trades=[],
+        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+            buys=[],
+            sells=[],
             dividends=[],
             taxes=[],
         )
 
         # then
         self.assertEqual(total_profit, Money("0", "PLN"))
+        self.assertEqual(total_cost, Money("0", "PLN"))
         self.assertEqual(total_tax, Money("0", "PLN"))
         self.assertEqual(paid_tax, Money("0", "PLN"))
 
     def test_positive_profit_from_positive_buy_sell_items(self):
         # given
         calc = TaxCalculator(19)
-        profit1 = Decimal(25)
-        profit2 = Decimal(75)
+        buy1 = Decimal(100)
+        sell1 = Decimal(125)
+        buy2 = Decimal(100)
+        sell2 = Decimal(175)
 
         # when
-        total_profit, total_tax, paid_tax = calc.calc_profit_tax(trades=[profit1, profit2], dividends=[], taxes=[])
+        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+            buys=[buy1, buy2],
+            sells=[sell1, sell2],
+            dividends=[],
+            taxes=[],
+        )
 
         # then
-        self.assertEqual(total_profit, Money("100", "PLN"))
+        self.assertEqual(total_profit, Money("300", "PLN"))
+        self.assertEqual(total_cost, Money("200", "PLN"))
         self.assertEqual(total_tax, Money("19", "PLN"))
         self.assertEqual(paid_tax, Money("0", "PLN"))
 
@@ -49,14 +59,16 @@ class TaxCalculatorTest(unittest.TestCase):
         calc = TaxCalculator(19)
 
         # when
-        total_profit, total_tax, paid_tax = calc.calc_profit_tax(
-            trades=[],
+        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+            buys=[],
+            sells=[],
             dividends=[dividend1, dividend2],
             taxes=[],
         )
 
         # then
         self.assertEqual(total_profit, Money("100", "PLN"))
+        self.assertEqual(total_cost, Money("0", "PLN"))
         self.assertEqual(total_tax, Money("19", "PLN"))
         self.assertEqual(paid_tax, Money("0", "PLN"))
 
@@ -67,35 +79,42 @@ class TaxCalculatorTest(unittest.TestCase):
         calc = TaxCalculator(19)
 
         # when
-        total_profit, total_tax, paid_tax = calc.calc_profit_tax(
-            trades=[],
+        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+            buys=[],
+            sells=[],
             dividends=[],
             taxes=[tax1, tax2],
         )
 
         # then
         self.assertEqual(total_profit, Money("0", "PLN"))
+        self.assertEqual(total_cost, Money("0", "PLN"))
         self.assertEqual(total_tax, Money("0", "PLN"))
         self.assertEqual(paid_tax, Money("100", "PLN"))
 
-    def test_negative_profit_from_negative_buy_sell_items(self):
+    def test_no_tax_from_negative_buy_sell_items(self):
         # given
-        profit1 = Decimal(25)
-        profit2 = Decimal(-75)
+        buy1 = Decimal(125)
+        sell1 = Decimal(100)
+        buy2 = Decimal(75)
+        sell2 = Decimal(50)
         calc = TaxCalculator(19)
 
         # when
-        total_profit, total_tax, paid_tax = calc.calc_profit_tax(trades=[profit1, profit2], dividends=[], taxes=[])
+        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(buys=[buy1, buy2], sells=[sell1, sell2], dividends=[], taxes=[])
 
         # then
-        self.assertEqual(total_profit, Money("-50", "PLN"))
+        self.assertEqual(total_profit, Money("150", "PLN"))
+        self.assertEqual(total_cost, Money("200", "PLN"))
         self.assertEqual(total_tax, Money("0", "PLN"))
         self.assertEqual(paid_tax, Money("0", "PLN"))
 
     def test_all_items_items(self):
         # given
-        profit1 = Decimal(25)
-        profit2 = Decimal(-75)
+        buy1 = Decimal(125)
+        sell1 = Decimal(100)
+        buy2 = Decimal(100)
+        sell2 = Decimal(175)
         dividend1 = Decimal(20)
         dividend2 = Decimal(80)
         tax1 = Decimal(3)
@@ -103,13 +122,15 @@ class TaxCalculatorTest(unittest.TestCase):
         calc = TaxCalculator(19)
 
         # when
-        total_profit, total_tax, paid_tax = calc.calc_profit_tax(
-            trades=[profit1, profit2],
+        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+            buys=[buy1, buy2],
+            sells=[sell1, sell2],
             dividends=[dividend1, dividend2],
             taxes=[tax1, tax2],
         )
 
         # then
-        self.assertEqual(total_profit, Money("50", "PLN"))
-        self.assertEqual(total_tax, Money(50 * 0.19, "PLN"))
+        self.assertEqual(total_profit, Money("375", "PLN"))
+        self.assertEqual(total_cost, Money("225", "PLN"))
+        self.assertEqual(total_tax, Money(150 * 0.19, "PLN"))
         self.assertEqual(paid_tax, Money("10", "PLN"))

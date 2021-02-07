@@ -11,5 +11,5 @@ class ProfitCalculator:
         # amount_sold = min(taxable.buy.amount, taxable.sell.amount) # this is faulty calcultion for testing purpose
         paid = (taxable.buy_paid_pln + taxable.buy_commission_pln) * amount_sold / taxable.source.buy.amount
         received = (taxable.sell_received_pln - taxable.sell_commission_pln) * amount_sold / taxable.source.sell.amount
-        profit = received - paid
-        return ProfitItem(taxable, profit)
+        # profit = received - paid
+        return ProfitItem(source=taxable, paid=paid, received=received)

@@ -71,8 +71,10 @@ class ProfitCalculatorTest(unittest.TestCase):
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = (4000 - 4) * 100 / 100 - (3000 + 3) * 100 / 100
-        self.assertEqual(profit.profit, PLN(expected_profit))
+        expected_paid = (3000 + 3) * 100 / 100
+        expected_received = (4000 - 4) * 100 / 100
+        self.assertEqual(profit.paid, PLN(expected_paid))
+        self.assertEqual(profit.received, PLN(expected_received))
 
     def test_buy_100_sell_50_different_quotation(self):
         # given
@@ -92,8 +94,10 @@ class ProfitCalculatorTest(unittest.TestCase):
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = (2000 - 4) * 50 / 50 - (3000 + 3) * 50 / 100
-        self.assertEqual(profit.profit, PLN(expected_profit))
+        expected_paid = (3000 + 3) * 50 / 100
+        expected_received = (2000 - 4) * 50 / 50
+        self.assertEqual(profit.paid, PLN(expected_paid))
+        self.assertEqual(profit.received, PLN(expected_received))
 
     def test_buy_50_sell_100_different_quotation(self):
         # given
@@ -113,8 +117,10 @@ class ProfitCalculatorTest(unittest.TestCase):
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = (4000 - 4) * 50 / 100 - (1500 + 3) * 50 / 50
-        self.assertEqual(profit.profit, PLN(expected_profit))
+        expected_paid = (1500 + 3) * 50 / 50
+        expected_received = (4000 - 4) * 50 / 100
+        self.assertEqual(profit.paid, PLN(expected_paid))
+        self.assertEqual(profit.received, PLN(expected_received))
 
     def test_buy_100_sell_200_sold_25_different_quotation(self):
         # given
@@ -134,8 +140,10 @@ class ProfitCalculatorTest(unittest.TestCase):
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = (8000 - 4) * 25 / 200 - (3000 + 3) * 25 / 100
-        self.assertEqual(profit.profit, PLN(expected_profit))
+        expected_paid = (3000 + 3) * 25 / 100
+        expected_received = (8000 - 4) * 25 / 200
+        self.assertEqual(profit.paid, PLN(expected_paid))
+        self.assertEqual(profit.received, PLN(expected_received))
 
     def test_buy_200_sell_100_sold_25_different_quotation(self):
         # given
@@ -155,5 +163,7 @@ class ProfitCalculatorTest(unittest.TestCase):
         profit = calculator.calc_profit(taxable)
 
         # then
-        expected_profit = (4000 - 4) * 25 / 100 - (6000 + 3) * 25 / 200
-        self.assertEqual(profit.profit, PLN(expected_profit))
+        expected_paid = (6000 + 3) * 25 / 200
+        expected_received = (4000 - 4) * 25 / 100
+        self.assertEqual(profit.paid, PLN(expected_paid))
+        self.assertEqual(profit.received, PLN(expected_received))

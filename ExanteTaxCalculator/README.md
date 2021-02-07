@@ -28,35 +28,40 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 [OK] - add support for TAX
 [OK] - add support for AUTOCONVERSION
 [OK] - complement TaxCalculator with Dividend and Tax support
-- add report printer - where did profits and taxes come from
+[OK] - add report printer - where did profits and taxes come from
 - add selecting year to calc the profits and taxes for
-- make ProfitItem independend from the BuySellIPairPLN -> BuySellPair -> BuyItem & SellItem
+- improvement: make ProfitItem independend from the BuySellIPairPLN -> BuySellPair -> BuyItem & SellItem
 
 ## Exante data
 
+Notice: 
+- transactions exported from Exante are sorted by date descending. So start reading from the bottom
+- transactions building single trade have same date and time, and TransactionID incrementing
+
 ```
-Transaction ID  Account ID	  Symbol ID       Operation type      When                  Sum       Asset     EUR equivalent  Comment
-61955151        TBA0174.001	  None            FUNDING/WITHDRAWAL  2020-06-23 14:41:21   13400     EUR       13400
+Transaction ID  Account ID    Symbol ID       Operation type      When                  Sum       Asset     EUR equivalent  Comment
 
-62088337        TBA0174.001	  EUR/USD.EXANTE  TRADE               2020-06-24 19:52:01   -13400    EUR       -13400
-62088340        TBA0174.001	  EUR/USD.EXANTE  TRADE               2020-06-24 19:52:01   15067.63  USD       13386.73
+78757917        TBA0174.001   IEF.NASDAQ      DIVIDEND            2020-12-17 11:02:25   1.45      USD        1.19           20.0 shares 2020-12-17 dividend IEF.NASDAQ 1.45 USD (0.072535 per share) tax 0.22 USD (15.0%)
+78757918        TBA0174.001   IEF.NASDAQ      TAX                 2020-12-17 11:02:25   -0.22     USD        -0.18  
 
-62088984        TBA0174.001	  SHY.ARCA	      TRADE               2020-06-24 19:54:08   150       SHY.ARCA  11534.16    // buy/sell subject
-62088986        TBA0174.001	  SHY.ARCA	      TRADE               2020-06-24 19:54:08   -12985.5  USD       -11534.16   // paid/received money
-62088988        TBA0174.001	  SHY.ARCA	      COMMISSION          2020-06-24 19:54:08   -3        USD       -2.66       // paid commission (optional)
+77471454        TBA0174.001   CLR.SGX         AUTOCONVERSION      2020-12-08 06:27:21   2.5       SGD        1.54
+77471455        TBA0174.001   CLR.SGX         AUTOCONVERSION      2020-12-08 06:27:21   -1.88     USD        -1.55
+
+72637626        TBA0174.001   IEF.ARCA        CORPORATE ACTION    2020-10-27 16:36:04   -20       IEF.ARCA   -2027.87       IEF.ARCA to IEF.NASDAQ
+72637631        TBA0174.001   IEF.NASDAQ      CORPORATE ACTION    2020-10-27 16:36:04   20        IEF.NASDAQ  2063.21       IEF.ARCA to IEF.NASDAQ
 
 62368140        TBA0174.001   SHY.ARCA        TRADE               2020-06-29 16:07:33   -70       SHY.ARCA  -5395.76
 62368141        TBA0174.001   SHY.ARCA        TRADE               2020-06-29 16:07:33   6062      USD       5395.76
 62368142        TBA0174.001   SHY.ARCA        COMMISSION          2020-06-29 16:07:33   -1.4      USD       -1.25
 
-72637626        TBA0174.001   IEF.ARCA        CORPORATE ACTION    2020-10-27 16:36:04   -20	      IEF.ARCA	 -2027.87       IEF.ARCA to IEF.NASDAQ
-72637631        TBA0174.001   IEF.NASDAQ      CORPORATE ACTION    2020-10-27 16:36:04   20        IEF.NASDAQ	2063.21       IEF.ARCA to IEF.NASDAQ
+62088984        TBA0174.001   SHY.ARCA        TRADE               2020-06-24 19:54:08   150       SHY.ARCA  11534.16        // buy/sell subject
+62088986        TBA0174.001   SHY.ARCA        TRADE               2020-06-24 19:54:08   -12985.5  USD       -11534.16       // paid/received money
+62088988        TBA0174.001   SHY.ARCA        COMMISSION          2020-06-24 19:54:08   -3        USD       -2.66           // paid commission 
 
-77471454        TBA0174.001   CLR.SGX         AUTOCONVERSION      2020-12-08 06:27:21   2.5       SGD        1.54
-77471455        TBA0174.001   CLR.SGX         AUTOCONVERSION      2020-12-08 06:27:21   -1.88     USD        -1.55
+62088337        TBA0174.001   EUR/USD.EXANTE  TRADE               2020-06-24 19:52:01   -13400    EUR       -13400
+62088340        TBA0174.001   EUR/USD.EXANTE  TRADE               2020-06-24 19:52:01   15067.63  USD       13386.73
 
-78757917        TBA0174.001   IEF.NASDAQ      DIVIDEND            2020-12-17 11:02:25   1.45      USD        1.19	20.0 shares 2020-12-17 dividend IEF.NASDAQ 1.45 USD (0.072535 per share) tax 0.22 USD (15.0%)
-78757918        TBA0174.001   IEF.NASDAQ      TAX                 2020-12-17 11:02:25   -0.22     USD        -0.18	None
+61955151        TBA0174.001   None            FUNDING/WITHDRAWAL  2020-06-23 14:41:21   13400     EUR       13400
 ```
 
 Note: usually TAX follows DIVIDEND, buy sometimes:

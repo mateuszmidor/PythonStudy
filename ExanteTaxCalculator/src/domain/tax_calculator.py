@@ -11,30 +11,37 @@ class TaxCalculator:
 
     def calc_profit_tax(
         self,
-        trades: List[Decimal],
+        buys: List[Decimal],
+        sells: List[Decimal],
         dividends: List[Decimal],
         taxes: List[Decimal],
-    ) -> Tuple[Money, Money, Money]:
+    ) -> Tuple[Money, Money, Money, Money]:
         """
         Input:
-            trades outcomes, positive or negative depending how did the trade go
-            dividends, always positive
-            taxes, always zero or positive
-        Return: (TotalProfit, TotalTax, TaxAlreadyPaid), all in PLN
-            TotalProfit is before deducting tax. Can be negative if transactions resulted in a loss.
+            buys - PLN paid for every buy/sell pair, always positive
+            sells - PLN received for every buy/sell pair, always positive
+            dividends - received dividends in PLN, always positive
+            taxes - paid taxes in PLN, always zero or positive
+        Return: (TotalProfit, TotalCost, TotalTax, TaxAlreadyPaid), all in PLN
+            TotalIncome is money received from selling shares and from dividends
+            TotalCost is money spent for buying shares
             TotalTax is TotalProfit * TAX_PERCENTAGE (as of 23.01.2021 - 19%). Can be >= 0.
             TaxAlreadyPaid is sum of Dividend taxes and Freestanding taxes listed in report so already deducted from trader's account.
         """
 
-        total_profit = Money("0", "PLN")
-        total_profit += sum(trades)
-        total_profit += sum(dividends)
+        total_income = Money("0", "PLN")
+        total_income += sum(sells)
+        total_income += sum(dividends)
+
+        total_cost = Money("0", "PLN")
+        total_cost += sum(buys)
 
         tax_already_paid = Money("0", "PLN")
         tax_already_paid += sum(taxes)
 
+        total_profit = total_income - total_cost
         total_tax = self._calc_tax(total_profit)
-        return (total_profit, total_tax, tax_already_paid)
+        return (total_income, total_cost, total_tax, tax_already_paid)
 
     def _calc_tax(self, profit: Money) -> Money:
         if profit.amount < 0:

@@ -35,14 +35,18 @@ class TraderTest(unittest.TestCase):
         # then
         self.assertEqual(trader.owned_asssets, {})
         self.assertEqual(trader.total_profit, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, PLN(0))
         self.assertEqual(trader.tax_already_paid, PLN(0))
 
-    def test_fund_success(self) -> None:
+    def test_fund_withdraw_success(self) -> None:
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"1000.0"	"EUR"	"1000.0"	"None"',
+            # withdraw 50 USD
+            '"2000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-21 20:40:55"	"-99"	"USD"	"0"	"None"',
+            # add 100 USD
+            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"100"	"USD"	"0"	"None"',
         ]
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
@@ -51,9 +55,9 @@ class TraderTest(unittest.TestCase):
         trader.trade_items(csv_report_lines)
 
         # then
-        self.assertTrue("EUR" in trader.owned_asssets)
-        self.assertEqual(trader.owned_asssets["EUR"], Decimal("1000"))
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("1"))
         self.assertEqual(trader.total_profit, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, PLN(0))
         self.assertEqual(trader.tax_already_paid, PLN(0))
 
@@ -80,36 +84,11 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1500"))
 
         self.assertEqual(trader.total_profit, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, PLN(0))
         self.assertEqual(trader.tax_already_paid, PLN(0))
 
-    # AUTOCONVERSION should be part of TRADE (BUY)
-    # def test_fund_autoconversion_success(self)->None:
-    #     # given
-    #     csv_report_lines = [
-    #         '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-    #         # exchange 1000 USD -> 2000 SGD
-    #         '"2001"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-10-21 20:40:55"	"2000"	"SGD"	"1.54"	"None"',
-    #         '"2002"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-10-21 20:40:55"	"-1000"	"USD"	"-1.55"	"None"',
-    #         # add 1000 USD
-    #         '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"1000.0"	"USD"	"1000.0"	"None"',
-    #     ]
-    #     quotes_provider_stub = QuotesProviderStub()
-    #     trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
-
-    #     # when
-    #     trader.trade_items(csv_report_lines)
-
-    #     # then
-    #     self.assertEqual(trader.owned_asssets["USD"], Decimal("0"))
-    #     self.assertEqual(trader.owned_asssets["SGD"], Decimal("2000"))
-    #     self.assertEqual(trader.profit_items, [])
-
-    #     self.assertEqual(trader.total_profit, PLN(0))
-    #     self.assertEqual(trader.total_tax, PLN(0))
-    #     self.assertEqual(trader.tax_already_paid, PLN(0))
-
-    def test_fund_dividend_without_tax_success(self) -> None:
+    def test_dividend_without_tax_success(self) -> None:
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
@@ -125,16 +104,20 @@ class TraderTest(unittest.TestCase):
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("100"))
         self.assertEqual(trader.total_profit, PLN(100 * 3))  # 1 USD = 3 PLN
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, PLN(100 * 3 * (TAX_PERCENTAGE / 100)))
         self.assertEqual(trader.tax_already_paid, PLN(0))
 
-    def test_fund_dividend_with_tax_success(self) -> None:
+    def test_dividend_together_with_tax_success(self) -> None:
+        """ Here dividend item contains tax """
+
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            # receive dividend, pay tax
-            '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"None"',
-            '"11"	"TBA0174.001"	"IEF.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15"	"USD"	"-12"	"None"',
+            # collect 100 USD dividend
+            '"1001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
+            # pay 15 USD tax
+            '"1002"	"TBA0174.001"	"SHY.ARCA"	"TAX"	"2020-10-20 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
         ]
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
@@ -144,9 +127,35 @@ class TraderTest(unittest.TestCase):
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
-        self.assertEqual(trader.total_profit, PLN(100 * 3))  # 1 USD = 3 PLN
+
+        self.assertEqual(trader.total_profit, PLN(100 * 3))  # 1USD=3PLN
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, PLN(100 * 3 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, PLN(45))
+        self.assertEqual(trader.tax_already_paid, PLN(15 * 3))
+
+    def test_dividend_separate_from_tax_success(self) -> None:
+        """ Here dividend is separate item from tax item """
+
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            # collect 100 USD dividend
+            '"2001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
+            # pay 15 USD tax
+            '"1001"	"TBA0174.001"	"SHY.ARCA"	"TAX"	"2020-10-21 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines)
+
+        # then
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
+        self.assertEqual(trader.total_profit, PLN(100 * 3))  # 1USD=3PLN
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, PLN(100 * 3 * (TAX_PERCENTAGE / 100)))
+        self.assertEqual(trader.tax_already_paid, PLN(15 * 3))
 
     def test_fund_tax_success(self) -> None:
         # given
@@ -166,6 +175,7 @@ class TraderTest(unittest.TestCase):
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("985"))
         self.assertEqual(trader.total_profit, PLN(0))  # no profit at all
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, PLN(0))  # no profit = no tax to pay
         self.assertEqual(trader.tax_already_paid, PLN(45))  # but they deducted some tax anyway... life. 1 USD = 3 PLN
 
@@ -198,6 +208,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("50"))
 
         self.assertEqual(trader.total_profit, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))  # cost is only generated from buy/sell pair
         self.assertEqual(trader.total_tax, PLN(0))
         self.assertEqual(trader.tax_already_paid, PLN(0))
 
@@ -229,10 +240,9 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["EUR"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1600"))
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
-        # self.assertEqual(trader.profit_items[0].profit, PLN(300))  # (801 - 1 - 699 - 1) = 100 USD, USD=3PLN
-
-        self.assertEqual(trader.total_profit, PLN(300))
-        self.assertEqual(trader.total_tax, PLN(300 * (TAX_PERCENTAGE / 100)))
+        self.assertEqual(trader.total_profit, PLN(800 * 3))
+        self.assertEqual(trader.total_cost, PLN(700 * 3))
+        self.assertEqual(trader.total_tax, PLN(100 * 3 * (TAX_PERCENTAGE / 100)))
         self.assertEqual(trader.tax_already_paid, PLN(0))
 
     def test_fund_exchange_buy_sell_loss_success(self) -> None:
@@ -264,56 +274,10 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1400"))
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
         # self.assertEqual(trader.profit_items[0].profit, PLN(-300))  # (601 - 1 - 699 - 1) = -100 USD; 1USD=3PLN
-        self.assertEqual(trader.total_profit, PLN(-300))
+        self.assertEqual(trader.total_profit, PLN(600 * 3))
+        self.assertEqual(trader.total_cost, PLN(700 * 3))
         self.assertEqual(trader.total_tax, PLN(0))
         self.assertEqual(trader.tax_already_paid, PLN(0))
-
-    def test_dividend_together_with_tax_success(self) -> None:
-        """ Here dividend item contains tax """
-
-        # given
-        csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            # collect 100 USD dividend
-            '"1001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
-            # pay 15 USD tax
-            '"1002"	"TBA0174.001"	"SHY.ARCA"	"TAX"	"2020-10-20 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
-        ]
-        quotes_provider_stub = QuotesProviderStub()
-        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
-
-        # when
-        trader.trade_items(csv_report_lines)
-
-        # then
-        self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
-
-        self.assertEqual(trader.total_profit, PLN(100 * 3))  # 1USD=3PLN
-        self.assertEqual(trader.total_tax, PLN(100 * 3 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, PLN(15 * 3))
-
-    def test_dividend_separate_from_tax_success(self) -> None:
-        """ Here dividend is separate item from tax item """
-
-        # given
-        csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            # collect 100 USD dividend
-            '"2001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
-            # pay 15 USD tax
-            '"1001"	"TBA0174.001"	"SHY.ARCA"	"TAX"	"2020-10-21 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
-        ]
-        quotes_provider_stub = QuotesProviderStub()
-        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
-
-        # when
-        trader.trade_items(csv_report_lines)
-
-        # then
-        self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
-        self.assertEqual(trader.total_profit, PLN(100 * 3))  # 1USD=3PLN
-        self.assertEqual(trader.total_tax, PLN(100 * 3 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, PLN(15 * 3))
 
     def test_fund_buy_corporate_action_success(self) -> None:
         # given
@@ -339,27 +303,6 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["SHY.ARCA"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["SHY.NYSE"], Decimal("10"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("0"))
-        self.assertEqual(trader.total_profit, PLN(0))
-        self.assertEqual(trader.total_tax, PLN(0))
-        self.assertEqual(trader.tax_already_paid, PLN(0))
-
-    def test_fund_withdraw_success(self) -> None:
-        # given
-        csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            # withdraw 50 USD
-            '"2000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-21 20:40:55"	"-99"	"USD"	"0"	"None"',
-            # add 100 USD
-            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"100"	"USD"	"0"	"None"',
-        ]
-        quotes_provider_stub = QuotesProviderStub()
-        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
-
-        # when
-        trader.trade_items(csv_report_lines)
-
-        # then
-        self.assertEqual(trader.owned_asssets["USD"], Decimal("1"))
         self.assertEqual(trader.total_profit, PLN(0))
         self.assertEqual(trader.total_tax, PLN(0))
         self.assertEqual(trader.tax_already_paid, PLN(0))

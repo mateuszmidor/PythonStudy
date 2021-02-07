@@ -15,7 +15,7 @@ from utils import newProfit, newDividend, newTax
 class TradeReportPrinterTest(unittest.TestCase):
     def test_print_profit(self):
         # given
-        profit = newProfit(profit_pln=-300, when=date(2020, 2, 2))
+        profit = newProfit(paid_pln=600, received_pln=300, when=date(2020, 2, 2))
         printer = TradeReportPrinter()
 
         # when

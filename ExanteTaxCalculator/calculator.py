@@ -40,8 +40,8 @@ def csv_read(filename: str) -> List[str]:
 
 def run_calculator(csv_name: str) -> None:
     csv_report_lines = csv_read(csv_name)
-    # quotes_provider = QuotatorNBP(fetcher=url_fetch)
-    quotes_provider = QuotesProviderStub()
+    quotes_provider = QuotatorNBP(fetcher=url_fetch)
+    # quotes_provider = QuotesProviderStub()
     trader = Trader(quotes_provider=quotes_provider, tax_percentage=TAX_PERCENTAGE)
 
     trader.trade_items(csv_report_lines)
@@ -58,8 +58,10 @@ def run_calculator(csv_name: str) -> None:
 
     print()
     print("RESULTS:")
-    print("total profit (before tax):", trader.total_profit)
-    print(f"total tax ({TAX_PERCENTAGE}% of total profit):", trader.total_tax)
+    print("total income:", trader.total_profit)
+    print("total cost:", trader.total_cost)
+    print("profit:", trader.total_profit - trader.total_cost)
+    print(f"total tax ({TAX_PERCENTAGE}% of profit):", trader.total_tax)
     print("already paid tax:", trader.tax_already_paid)
 
 

@@ -37,7 +37,7 @@ class TradeReportPrinter:
         format_str = "{: <20}{:10.4f} PLN, Date: {:%d-%m-%Y %H:%M:%S}, {} x {}, PLN/USD buy: {:0.4f}, PLN/USD sell: {:0.4f}, Buy Q Date: {:%d-%m-%Y}, Sell Q Date: {:%d-%m-%Y}"
         profit_str = format_str.format(
             "BUY/SELL Profit: ",
-            item.profit.amount,
+            item.received.amount - item.paid.amount,
             item.source.source.sell.date,
             item.source.source.amount_sold,
             item.source.source.sell.asset_name,

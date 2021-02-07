@@ -25,6 +25,7 @@ class Trader:
         self._tax_calculator = TaxCalculator(tax_percentage)
         self._wallet = Wallet()
         self._total_profit = Money("0", "PLN")
+        self._total_cost = Money("0", "PLN")
         self._total_tax = Money("0", "PLN")
         self._tax_already_paid = Money("0", "PLN")
         self._report: List[ReportItem] = []
@@ -67,7 +68,8 @@ class Trader:
         buy_sell_pairs_pln = [buy_sell_item_quotator.quote(item) for item in matcher.buy_sell_pairs]
         profit_calculator = ProfitCalculator()
         profit_items_pln = [profit_calculator.calc_profit(item) for item in buy_sell_pairs_pln]
-        trade_outcomes_values = [item.profit for item in profit_items_pln]
+        buy_values = [item.paid for item in profit_items_pln]
+        sell_values = [item.received for item in profit_items_pln]
 
         # received dividends in PLN
         dividend_quotator = DividendItemPLNQuotator(self._quotes_provider)
@@ -80,8 +82,9 @@ class Trader:
         tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]
         freestanding_taxes_values = [item.paid_tax_pln for item in tax_items_pln]
 
-        self._total_profit, self._total_tax, self._tax_already_paid = self._tax_calculator.calc_profit_tax(
-            trades=trade_outcomes_values,
+        self._total_profit, self._total_cost, self._total_tax, self._tax_already_paid = self._tax_calculator.calc_profit_tax(
+            buys=buy_values,
+            sells=sell_values,
             dividends=dividend_values,
             taxes=freestanding_taxes_values + dividend_taxes_values,
         )
@@ -95,10 +98,16 @@ class Trader:
     @property
     def total_profit(self) -> Money:
         """
+        TAX form: Przychód
         This is the total profit from trades and dividends, before deducting tax.
         Can be negative if transactions resulted in a loss and dividends didn't help.
         """
         return self._total_profit
+
+    @property
+    def total_cost(self) -> Money:
+        """ TAX form: Koszt uzyskania przychodu """
+        return self._total_cost
 
     @property
     def total_tax(self) -> Money:
