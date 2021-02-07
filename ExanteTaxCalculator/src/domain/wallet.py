@@ -95,14 +95,3 @@ class Wallet:
     @property
     def assets(self) -> Dict[str, Decimal]:
         return copy.deepcopy(self._assets)
-
-    # def get(self, currency: Currency) -> Decimal:
-    #     return self._currencies[currency]
-
-    # @property
-    # def currencies(self) -> Dict[str, Decimal]:
-    #     return copy.deepcopy(self._currencies)
-
-    # def pay_out(self, m: Money):
-    #     currency = Currency(m.currency)
-    #     self._currencies[currency] -= m.amount

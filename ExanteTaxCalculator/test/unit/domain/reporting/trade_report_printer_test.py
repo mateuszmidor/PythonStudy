@@ -1,6 +1,6 @@
 import unittest
 from money import Money
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from src.domain.quotation.dividend_item_pln import DividendItemPLN
 from src.domain.quotation.tax_item_pln import TaxItemPLN
@@ -15,7 +15,7 @@ from utils import newProfit, newDividend, newTax
 class TradeReportPrinterTest(unittest.TestCase):
     def test_print_profit(self):
         # given
-        profit = newProfit(paid_pln=600, received_pln=300, when=date(2020, 2, 2))
+        profit = newProfit(paid_pln=600, received_pln=300, when=datetime(2020, 2, 2))
         printer = TradeReportPrinter()
 
         # when
@@ -29,7 +29,7 @@ class TradeReportPrinterTest(unittest.TestCase):
 
     def test_print_tax(self):
         # given
-        tax = newTax(paid_pln=45, when=date(2020, 5, 20))
+        tax = newTax(paid_pln=45, when=datetime(2020, 5, 20))
         printer = TradeReportPrinter()
 
         # when
@@ -43,7 +43,7 @@ class TradeReportPrinterTest(unittest.TestCase):
 
     def test_print_dividend(self):
         # given
-        dividend = newDividend(dividend_pln=100, when=date(2020, 4, 2), tax_pln=15)
+        dividend = newDividend(dividend_pln=100, when=datetime(2020, 4, 2), tax_pln=15)
         printer = TradeReportPrinter()
 
         # when

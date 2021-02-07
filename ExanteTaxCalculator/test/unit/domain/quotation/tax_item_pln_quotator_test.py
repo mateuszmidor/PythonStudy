@@ -37,7 +37,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
         tax = TaxItem(
             paid_tax=Money("15", "SGD"),
-            date=datetime.date(2000, 12, 27),
+            date=datetime.datetime(2000, 12, 27),
             transaction_id=1,
         )
 
@@ -50,7 +50,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
     def test_quotation_before_available_quotes_raises_error(self):
         # given
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
-        before_available = datetime.date(2000, 12, 20)
+        before_available = datetime.datetime(2000, 12, 20)
         tax = TaxItem(
             paid_tax=Money("15", "USD"),
             date=before_available,
@@ -66,7 +66,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
     def test_quotation_after_available_quotes_raises_error(self):
         # given
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
-        after_available = datetime.date(2001, 1, 5)
+        after_available = datetime.datetime(2001, 1, 5)
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
         before_available = datetime.date(2000, 12, 20)
         tax = TaxItem(
@@ -86,7 +86,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
         tax = TaxItem(
             paid_tax=Money("15", "USD"),
-            date=datetime.date(2000, 12, 24),
+            date=datetime.datetime(2000, 12, 24),
             transaction_id=1,
         )
 
@@ -103,7 +103,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
         tax = TaxItem(
             paid_tax=Money("15", "USD"),
-            date=datetime.date(2000, 12, 27),
+            date=datetime.datetime(2000, 12, 27),
             transaction_id=1,
         )
 

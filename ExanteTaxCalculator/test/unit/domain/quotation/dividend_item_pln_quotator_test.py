@@ -49,7 +49,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
     def test_quotation_before_available_quotes_raises_error(self):
         # given
         quotator = DividendItemPLNQuotator(QuotesProviderStub())
-        before_available = datetime.date(2000, 12, 20)
+        before_available = datetime.datetime(2000, 12, 20)
         dividend = DividendItem(
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
@@ -65,9 +65,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
     def test_quotation_after_available_quotes_raises_error(self):
         # given
         quotator = DividendItemPLNQuotator(QuotesProviderStub())
-        after_available = datetime.date(2001, 1, 5)
-        quotator = DividendItemPLNQuotator(QuotesProviderStub())
-        before_available = datetime.date(2000, 12, 20)
+        after_available = datetime.datetime(2001, 1, 5)
         dividend = DividendItem(
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
@@ -86,7 +84,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         dividend = DividendItem(
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
-            date=datetime.date(2000, 12, 24),
+            date=datetime.datetime(2000, 12, 24),
         )
 
         # when
@@ -103,7 +101,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         dividend = DividendItem(
             received_dividend=Money("100", "USD"),
             paid_tax=Money("15", "USD"),
-            date=datetime.date(2000, 12, 27),
+            date=datetime.datetime(2000, 12, 27),
         )
 
         # when

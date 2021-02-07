@@ -1,6 +1,6 @@
 import unittest
 from money import Money
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from src.domain.quotation.dividend_item_pln import DividendItemPLN
 from src.domain.quotation.tax_item_pln import TaxItemPLN
@@ -15,12 +15,12 @@ from utils import newProfit, newDividend, newTax
 class TradeReportBuilderTest(unittest.TestCase):
     def test_report_items_get_sorted_by_date_ascending(self):
         # given
-        profit1 = newProfit(date(2020, 2, 2))
-        profit2 = newProfit(date(2020, 6, 2))
-        dividend1 = newDividend(date(2020, 4, 2))
-        dividend2 = newDividend(date(2020, 8, 2))
-        tax1 = newTax(date(2020, 3, 2))
-        tax2 = newTax(date(2020, 9, 2))
+        profit1 = newProfit(datetime(2020, 2, 2))
+        profit2 = newProfit(datetime(2020, 6, 2))
+        dividend1 = newDividend(datetime(2020, 4, 2))
+        dividend2 = newDividend(datetime(2020, 8, 2))
+        tax1 = newTax(datetime(2020, 3, 2))
+        tax2 = newTax(datetime(2020, 9, 2))
 
         # when
         items = TradeReportBuilder.build(
