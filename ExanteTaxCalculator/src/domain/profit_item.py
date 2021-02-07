@@ -11,19 +11,16 @@ class ProfitPLN:
         self._source = source
         self._paid = Money(paid, "PLN")
         self._received = Money(received, "PLN")
-        # profit net = received - paid
 
     @property
     def paid(self) -> Money:
+        """ Paid money for buying shares in PLN """
         return self._paid
 
     @property
     def received(self) -> Money:
+        """ Received money for selling shares in PLN """
         return self._received
-
-    # @property
-    # def profit(self) -> Money:
-    #     return self._profit
 
     @property
     def source(self) -> BuySellPairPLN:
