@@ -13,12 +13,12 @@ from src.domain.quotation.tax_item_pln_quotator import TaxItemPLNQuotator
 
 class QuotesProviderStub:
     usd_table = {
-        datetime.date(2000, 12, 20): 3.0,  # tuesday
+        datetime.date(2000, 12, 20): 3.0,
         datetime.date(2000, 12, 21): 3.0,
         datetime.date(2000, 12, 22): 3.0,
-        datetime.date(2000, 12, 23): 3.0,
-        # datetime.date(2000, 12, 24) : 3.0, # saturday
-        # datetime.date(2000, 12, 25) : 3.0, # sunday
+        # datetime.date(2000, 12, 23): 3.0, # saturday
+        # datetime.date(2000, 12, 24) : 3.0, # sunday
+        datetime.date(2000, 12, 25): 3.0,
         datetime.date(2000, 12, 26): 4.0,
         datetime.date(2000, 12, 27): 4.0,
     }
@@ -68,7 +68,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
         after_available = datetime.datetime(2001, 1, 5)
         quotator = TaxItemPLNQuotator(QuotesProviderStub())
-        before_available = datetime.date(2000, 12, 20)
+        before_available = datetime.date(2000, 12, 19)
         tax = TaxItem(
             paid_tax=Money("15", "USD"),
             date=after_available,
@@ -94,8 +94,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         item = quotator.quote(tax)
 
         # then
-
-        self.assertEqual(item.tax_pln_quotation_date, datetime.date(2000, 12, 23))
+        self.assertEqual(item.tax_pln_quotation_date, datetime.date(2000, 12, 22))
         self.assertEqual(item.paid_tax_pln, Decimal(45))  # 15 * 3 USD/PLN
 
     def test_quote_after_weekend(self):

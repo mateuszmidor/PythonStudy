@@ -91,7 +91,7 @@ class DividendItemQuotatorTest(unittest.TestCase):
         item = quotator.quote(dividend)
 
         # then
-        self.assertEqual(item.dividend_pln_quotation_date, datetime.date(2000, 12, 23))
+        self.assertEqual(item.dividend_pln_quotation_date, datetime.date(2000, 12, 22))
         self.assertEqual(item.received_dividend_pln, Decimal(300))  # 100 * 3 USD/PLN
         self.assertEqual(item.paid_tax_pln, Decimal(45))  # 15 * 3 USD/PLN
 

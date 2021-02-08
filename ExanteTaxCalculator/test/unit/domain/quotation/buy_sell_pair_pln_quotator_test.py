@@ -15,12 +15,12 @@ from src.domain.errors import NoQuotesAvailableError
 
 class QuotesProviderStub:
     usd_table = {
-        datetime.date(2000, 12, 20): 3.0,  # tuesday
+        datetime.date(2000, 12, 20): 3.0,
         datetime.date(2000, 12, 21): 3.0,
         datetime.date(2000, 12, 22): 3.0,
-        datetime.date(2000, 12, 23): 3.0,
-        # datetime.date(2000, 12, 24) : 3.0, # saturday
-        # datetime.date(2000, 12, 25) : 3.0, # sunday
+        # datetime.date(2000, 12, 23): 3.0, # saturday
+        # datetime.date(2000, 12, 24): 3.0, # sunday
+        datetime.date(2000, 12, 25): 3.0,
         datetime.date(2000, 12, 26): 4.0,
         datetime.date(2000, 12, 27): 4.0,
     }
@@ -143,7 +143,7 @@ class TaxableItemQuotatorTest(unittest.TestCase):
         item = quotator.quote(buy_sell_pair)
 
         # then
-        self.assertEqual(item.buy_pln_quotation_date, datetime.date(2000, 12, 23))
+        self.assertEqual(item.buy_pln_quotation_date, datetime.date(2000, 12, 25))
         self.assertEqual(item.buy_paid_pln, Decimal(3000))  # 1000 * 3 USD/PLN
         self.assertEqual(item.buy_commission_pln, Decimal(3))  # 1 * 3 USD/PLN
 
