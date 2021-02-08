@@ -6,8 +6,10 @@ from datetime import datetime
 from unittest.mock import create_autospec
 
 from src.domain.quotation.nbp.quotator_nbp import QuotatorNBP, UrlFetcher
+from src.domain.errors import QuotationError
 
 NOT_FOUND_404 = ("404 Not Found", HTTPStatus.NOT_FOUND)
+SOCKET_ERROR = Exception("Network socket error")
 
 
 class QuotatorNBPTest(unittest.TestCase):
@@ -21,7 +23,7 @@ class QuotatorNBPTest(unittest.TestCase):
         quotator = QuotatorNBP(fetcher)
 
         # when
-        quotator.get_average_pln_for_day(currency, date)
+        _ = quotator.get_average_pln_for_day(currency, date)
 
         # then
         fetcher.assert_called_with(expected_url)
@@ -64,8 +66,20 @@ class QuotatorNBPTest(unittest.TestCase):
         quotator = QuotatorNBP(fetcher)
 
         # when - then
-        with pytest.raises(Exception):
-            pln_to_usd = quotator.get_average_pln_for_day(currency, date)
+        with pytest.raises(QuotationError):
+            _ = quotator.get_average_pln_for_day(currency, date)
+
+    def test_infrastructur_exception_raises_exception(self) -> None:
+        # given
+        currency = "USD"
+        date = datetime(2020, 5, 15)  # friday
+        fetcher = create_autospec(UrlFetcher)
+        fetcher.side_effects = SOCKET_ERROR
+        quotator = QuotatorNBP(fetcher)
+
+        # when - then
+        with pytest.raises(QuotationError):
+            _ = quotator.get_average_pln_for_day(currency, date)
 
     def test_correct_response_returns_quotation(self) -> None:
         # given

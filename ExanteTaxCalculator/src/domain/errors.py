@@ -4,3 +4,7 @@ class NoQuotesAvailableError(Exception):
 
 class InsufficientAssetError(Exception):
     pass
+
+
+class QuotationError(Exception):
+    pass
