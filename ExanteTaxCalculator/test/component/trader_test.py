@@ -24,15 +24,26 @@ TAX_PERCENTAGE = Decimal("19.0")
 
 class QuotesProviderStub:
     def get_average_pln_for_day(self, currency: Currency, date: datetime.date) -> Optional[Decimal]:
-        """ Laziness manifestation; always return 1USD = 3PLN """
-        if currency != USD:
-            raise ValueError(f"Expected USD, got: {currency}")
-        return Decimal("3")
+        """ Laziness manifestation; always return 1USD = 3PLN, 1SGD = 2PLN """
+        if currency == Currency("USD"):
+            return Decimal("3")
+        if currency == Currency("SGD"):
+            return Decimal("2")
+
+        raise ValueError(f"Expected USD or SGD, got: {currency}")
 
 
 def USD_TO_PLN(amount: Union[int, Decimal]) -> Money:
     quotes_provider = QuotesProviderStub()
     pln_to_usd = quotes_provider.get_average_pln_for_day(Currency("USD"), datetime.date(2000, 1, 1))
+    assert pln_to_usd is not None
+    pln = amount * pln_to_usd
+    return Money(pln, "PLN")
+
+
+def SGD_TO_PLN(amount: Union[int, Decimal]) -> Money:
+    quotes_provider = QuotesProviderStub()
+    pln_to_usd = quotes_provider.get_average_pln_for_day(Currency("SGD"), datetime.date(2000, 1, 1))
     assert pln_to_usd is not None
     pln = amount * pln_to_usd
     return Money(pln, "PLN")
@@ -301,6 +312,83 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.total_tax, USD_TO_PLN(0))
         self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
         self.assertEqual(trader.report, [])
+
+    def test_fund_buy_with_autoconversion_sell_with_autoconversion_success(self) -> None:
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            # sell 50 CLR.SGX for 1500 SGD with autoconversion to 1200 USD including commission
+            '"4001"	"TBA9999.001"	"CLR.SGX"	"TRADE"	"2020-10-23 20:40:55"	"-50"	"CLR.SGX"	"0"	"None"',
+            '"4002"	"TBA9999.001"	"CLR.SGX"	"TRADE"	"2020-10-23 20:40:55"	"1502"	"SGD"	"0"	"None"',
+            '"4003"	"TBA9999.001"	"CLR.SGX"	"COMMISSION"	"2020-10-23 20:40:55"	"-2"	"SGD"	"0"	"None"',
+            '"4004"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2021-02-09 07:46:39"	"-1502"	"SGD"	"0"	"None"',
+            '"4005"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2021-02-09 07:46:39"	"1201"	"USD"	"0"	"None"',
+            '"4006"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2021-02-09 07:46:39"	"2"	"SGD"	"0"	"None"',
+            '"4007"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2021-02-09 07:46:39"	"-1"	"USD"	"0"	"None"',
+            # buy 50 CLR.SGX for 1000 SGD  with autoconversion from 800 USD including commission
+            '"3001"	"TBA9999.001"	"CLR.SGX"	"TRADE"	"2020-10-22 20:40:55"	"50"	"CLR.SGX"	"0"	"None"',
+            '"3002"	"TBA9999.001"	"CLR.SGX"	"TRADE"	"2020-10-22 20:40:55"	"-998"	"SGD"	"0"	"None"',
+            '"3003"	"TBA9999.001"	"CLR.SGX"	"COMMISSION"	"2020-10-22 20:40:55"	"-2.0"	"SGD"	"0"	"None"',
+            '"3004"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-10-22 20:40:55"	"998"	"SGD"	"0"	"None"',
+            '"3005"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-10-22 20:40:55"	"-799"	"USD"	"0"	"None"',
+            '"3006"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-10-22 20:40:55"	"2"	"SGD"	"0"	"None"',
+            '"3007"	"TBA9999.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-10-22 20:40:55"	"-1"	"USD"	"0"	"None"',
+            # add 800 USD
+            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"800.0"	"USD"	"0"	"None"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines)
+
+        # then
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("1200"))
+        self.assertEqual(trader.owned_asssets["SGD"], Decimal("0"))
+        self.assertEqual(trader.owned_asssets["CLR.SGX"], Decimal("0"))
+        self.assertEqual(trader.total_profit, SGD_TO_PLN(1500))
+        self.assertEqual(trader.total_cost, SGD_TO_PLN(1000))
+        self.assertEqual(trader.total_tax, SGD_TO_PLN(500 * (TAX_PERCENTAGE / 100)))
+        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(len(trader.report), 1)
+
+        profit = trader.report[0]
+        assert isinstance(profit, ProfitPLN)
+        self.assertEqual(profit.paid, SGD_TO_PLN(1000))
+        self.assertEqual(profit.received, SGD_TO_PLN(1500))
+
+    def test_dividend_with_autoconversion_success(self) -> None:
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"1"	"TBA0174.001"	"CLR.SGX"	"DIVIDEND"	"2020-12-08 06:27:21"	"31.0"	"SGD"	"19.34"	"1300.0 shares (0.024 per share)"',
+            '"2"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-31.0"	"SGD"	"-19.34"	"1300.0 shares (0.024 per share)"',
+            '"3"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"24.0"	"USD"	"19.3"	"1300.0  (0.024 per share)"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines)
+
+        # then
+        self.assertTrue("SGD" in trader.owned_asssets)
+        self.assertEqual(trader.owned_asssets["SGD"], Decimal("0"))
+        self.assertTrue("USD" in trader.owned_asssets)
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("24.0"))
+
+        self.assertEqual(trader.total_profit, SGD_TO_PLN(31))
+        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
+        self.assertEqual(trader.total_tax, SGD_TO_PLN(31 * (TAX_PERCENTAGE / 100)))
+        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(len(trader.report), 1)
+
+        dividend = trader.report[0]
+        assert isinstance(dividend, DividendItemPLN)
+        self.assertEqual(dividend.received_dividend_pln, Decimal(31 * 2))
+        self.assertEqual(dividend.dividend_pln_quotation_date, datetime.date(2020, 12, 7))
+        self.assertEqual(dividend.paid_tax_pln, Decimal(0))
+        self.assertEqual(dividend.tax_pln_quotation_date, datetime.date(2020, 12, 7))
 
     def test_fund_exchange_buy_sell_profit_success(self) -> None:
         # given

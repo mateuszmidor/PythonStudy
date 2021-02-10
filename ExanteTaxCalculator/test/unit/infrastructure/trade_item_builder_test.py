@@ -84,6 +84,32 @@ class TradeItemBuilderTest(unittest.TestCase):
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
 
+    def test_build_sell_with_autoconversion_item(self) -> None:
+        # given
+        row1 = ReportRow(1, "ACCOUNT.001", "SHY", TRADE, DATE, Decimal("-70"), "SHY", Decimal("-5395.76"), "Sell shy")
+        row2 = ReportRow(2, "ACCOUNT.001", "SHY", TRADE, DATE, Decimal("6062.0"), "USD", Decimal("5395.76"), "Sell shy")
+        row3 = ReportRow(3, "ACCOUNT.001", "SHY", COMMISSION, DATE, Decimal("-1.4"), "USD", Decimal("-1.25"), "Sell shy")
+        row4 = ReportRow(4, "ACCOUNT.001", "SHY", AUTOCONVERSION, DATE, Decimal("-6062.0"), "USD", Decimal("-4000"), "Conversion")
+        row5 = ReportRow(5, "ACCOUNT.001", "SHY", AUTOCONVERSION, DATE, Decimal("4000"), "EUR", Decimal("4000"), "Conversion")
+        row6 = ReportRow(6, "ACCOUNT.001", "SHY", AUTOCONVERSION, DATE, Decimal("1.4"), "USD", Decimal("1"), "Conversion")
+        row7 = ReportRow(7, "ACCOUNT.001", "SHY", AUTOCONVERSION, DATE, Decimal("-1"), "EUR", Decimal("-1"), "Conversion")
+
+        # when
+        item = TradeItemBuilder().add(row1).add(row2).add(row3).add(row4).add(row5).add(row6).add(row7).build()
+
+        # then
+        self.assertIsInstance(item, SellItem)
+        self.assertEqual(item.asset_name, "SHY")
+        self.assertEqual(item.amount, Decimal("70"))
+        self.assertEqual(item.received, Money("6062.0", "USD"))
+        self.assertEqual(item.commission, Money("1.4", "USD"))
+        self.assertEqual(item.date, DATE)
+        self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.autoconversions[0].conversion_from, Money("6062", "USD"))
+        self.assertEqual(item.autoconversions[0].conversion_to, Money("4000", "EUR"))
+        self.assertEqual(item.autoconversions[1].conversion_to, Money("1.4", "USD"))
+        self.assertEqual(item.autoconversions[1].conversion_from, Money("1", "EUR"))
+
     def test_build_funding_item(self) -> None:
         # given
         row1 = ReportRow(1, "ACCOUNT.001", "None", FUNDING_WITHDRAWAL, DATE, Decimal("100.50"), "EUR", Decimal("100.50"), "Fund")
@@ -153,6 +179,24 @@ class TradeItemBuilderTest(unittest.TestCase):
         self.assertEqual(item.paid_tax, Money("15", "USD"))
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
+
+    def test_build_dividend_with_autoconversion_item(self) -> None:
+        # given
+        row1 = ReportRow(1, "ACCOUNT.001", "CLR.SGX", DIVIDEND, DATE, Decimal("31.2"), "SGD", Decimal("19.34"), "")
+        row2 = ReportRow(2, "ACCOUNT.001", "CLR.SGX", AUTOCONVERSION, DATE, Decimal("-31.2"), "SGD", Decimal("-19.34"), "")
+        row3 = ReportRow(3, "ACCOUNT.001", "CLR.SGX", AUTOCONVERSION, DATE, Decimal("23.4"), "USD", Decimal("19.3"), "")
+
+        # when
+        item = TradeItemBuilder().add(row1).add(row2).add(row3).build()
+
+        # then
+        self.assertIsInstance(item, DividendItem)
+        self.assertEqual(item.received_dividend, Money("31.2", "SGD"))
+        self.assertEqual(item.paid_tax, Money("0", "SGD"))
+        self.assertEqual(item.date, DATE)
+        self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.autoconversions[0].conversion_from, Money("31.2", "SGD"))
+        self.assertEqual(item.autoconversions[0].conversion_to, Money("23.4", "USD"))
 
     def test_build_tax(self) -> None:
         # given

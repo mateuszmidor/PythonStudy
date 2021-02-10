@@ -48,8 +48,10 @@ class Trader:
             elif isinstance(item, SellItem):
                 self._wallet.sell(item)
                 matcher.sell(item)
+            # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
             elif isinstance(item, AutoConversionItem):
-                self._wallet.autoconversion(item)
+                raise TypeError(f"Autoconversion is not expected to be a standalone transaction but so it happens: {type(item)}")
+            #     self._wallet.autoconversion(item)
             elif isinstance(item, DividendItem):
                 self._wallet.dividend(item)
                 received_dividends.append(item)

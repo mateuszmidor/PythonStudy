@@ -252,6 +252,62 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.autoconversions[1].conversion_from, Money("1.88", "USD"))
         self.assertEqual(item.autoconversions[1].conversion_to, Money("2.5", "SGD"))
 
+    def test_read_sell_autoconversion_success(self) -> None:
+        # given
+        report_csv = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"1"	"TBA0174.001"	"CLR.SGX"	"TRADE"	"2020-12-08 06:27:21"	"-100"	"CLR.SGX"	"-67.78"	"None"',
+            '"2"	"TBA0174.001"	"CLR.SGX"	"TRADE"	"2020-12-08 06:27:21"	"108.9"	"SGD"	"67.78"	"None"',
+            '"3"	"TBA0174.001"	"CLR.SGX"	"COMMISSION"	"2020-12-08 06:27:21"	"-2.5"	"SGD"	"-1.56"	"None"',
+            '"4"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-108.9"	"SGD"	"-67.78"	"None"',
+            '"5"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"81.72"	"USD"	"67.64"	"None"',
+            '"6"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"2.5"	"SGD"	"1.56"	"None"',
+            '"7"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-1.89"	"USD"	"-1.56"	"None"',
+        ]
+        repo = TradesRepoCSV()
+
+        # when
+        repo.load(report_csv, "\t")
+
+        # then
+        self.assertEqual(len(repo.items), 1)
+        assert isinstance(repo.items[0], SellItem)
+        item: SellItem = repo.items[0]
+        self.assertEqual(item.asset_name, "CLR.SGX")
+        self.assertEqual(item.amount, Decimal("100"))
+        self.assertEqual(item.received, Money("108.9", "SGD"))
+        self.assertEqual(item.commission, Money("2.5", "SGD"))
+        self.assertEqual(item.date, datetime(2020, 12, 8, 6, 27, 21))
+        self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.autoconversions[0].conversion_from, Money("108.9", "SGD"))
+        self.assertEqual(item.autoconversions[0].conversion_to, Money("81.72", "USD"))
+        self.assertEqual(item.autoconversions[1].conversion_from, Money("1.89", "USD"))
+        self.assertEqual(item.autoconversions[1].conversion_to, Money("2.5", "SGD"))
+
+    def test_read_dividend_autoconversion_success(self) -> None:
+        # given
+        report_csv = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"1"	"TBA0174.001"	"CLR.SGX"	"DIVIDEND"	"2020-12-08 06:27:21"	"31.2"	"SGD"	"19.34"	"1300.0 shares (0.024 per share)"',
+            '"2"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-31.2"	"SGD"	"-19.34"	"1300.0 shares (0.024 per share)"',
+            '"3"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"23.4"	"USD"	"19.3"	"1300.0  (0.024 per share)"',
+        ]
+        repo = TradesRepoCSV()
+
+        # when
+        repo.load(report_csv, "\t")
+
+        # then
+        self.assertEqual(len(repo.items), 1)
+        assert isinstance(repo.items[0], DividendItem)
+        item: DividendItem = repo.items[0]
+        self.assertEqual(item.received_dividend, Money("31.2", "SGD"))
+        self.assertEqual(item.paid_tax, Money("0", "SGD"))
+        self.assertEqual(item.date, datetime(2020, 12, 8, 6, 27, 21))
+        self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.autoconversions[0].conversion_from, Money("31.2", "SGD"))
+        self.assertEqual(item.autoconversions[0].conversion_to, Money("23.4", "USD"))
+
     def test_read_dividend_without_tax_success(self) -> None:
         # given
         report_csv = [

@@ -57,20 +57,6 @@ class WalletTest(unittest.TestCase):
         self.assertTrue("EUR" in wallet.assets)
         self.assertEqual(wallet.assets["EUR"], Decimal("40"))
 
-    def test_autoconversion(self) -> None:
-        # given
-        item = AutoConversionItem(conversion_from=Money("50", "USD"), conversion_to=Money("40", "EUR"), date=date(2020, 10, 20), transaction_id=1)
-        wallet = make_wallet({"USD": "100"})
-
-        # when
-        wallet.autoconversion(item)
-
-        # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("50"))
-        self.assertTrue("EUR" in wallet.assets)
-        self.assertEqual(wallet.assets["EUR"], Decimal("40"))
-
     def test_dividend_without_tax(self) -> None:
         # given
         item = DividendItem(received_dividend=Money("100", "USD"), paid_tax=Money("0", "USD"), date=date(2020, 10, 20), transaction_id=1)
@@ -214,28 +200,44 @@ class WalletTest(unittest.TestCase):
         # then
         self.assertIsInstance(expected_error, InsufficientAssetError)
 
-    #
-    def test_autoconversion_non_owned_asset_raises_error(self) -> None:
-        # given
-        item = AutoConversionItem(conversion_from=Money("50", "USD"), conversion_to=Money("40", "EUR"), date=date(2020, 10, 20), transaction_id=1)
-        wallet = make_wallet({"THB": "100"})
+    # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
+    # def test_autoconversion(self) -> None:
+    #     # given
+    #     item = AutoConversionItem(conversion_from=Money("50", "USD"), conversion_to=Money("40", "EUR"), date=date(2020, 10, 20), transaction_id=1)
+    #     wallet = make_wallet({"USD": "100"})
 
-        # when
-        expected_error = capture_exception(wallet.autoconversion, item)
+    #     # when
+    #     wallet.autoconversion(item)
 
-        # then
-        self.assertIsInstance(expected_error, InsufficientAssetError)
+    #     # then
+    #     self.assertTrue("USD" in wallet.assets)
+    #     self.assertEqual(wallet.assets["USD"], Decimal("50"))
+    #     self.assertTrue("EUR" in wallet.assets)
+    #     self.assertEqual(wallet.assets["EUR"], Decimal("40"))
 
-    def test_autoconversion_more_than_owned_asset_raises_error(self) -> None:
-        # given
-        item = AutoConversionItem(conversion_from=Money("50", "USD"), conversion_to=Money("40", "EUR"), date=date(2020, 10, 20), transaction_id=1)
-        wallet = make_wallet({"USD": "10"})
+    # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
+    # def test_autoconversion_non_owned_asset_raises_error(self) -> None:
+    #     # given
+    #     item = AutoConversionItem(conversion_from=Money("50", "USD"), conversion_to=Money("40", "EUR"), date=date(2020, 10, 20), transaction_id=1)
+    #     wallet = make_wallet({"THB": "100"})
 
-        # when
-        expected_error = capture_exception(wallet.autoconversion, item)
+    #     # when
+    #     expected_error = capture_exception(wallet.autoconversion, item)
 
-        # then
-        self.assertIsInstance(expected_error, InsufficientAssetError)
+    #     # then
+    #     self.assertIsInstance(expected_error, InsufficientAssetError)
+
+    # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
+    # def test_autoconversion_more_than_owned_asset_raises_error(self) -> None:
+    #     # given
+    #     item = AutoConversionItem(conversion_from=Money("50", "USD"), conversion_to=Money("40", "EUR"), date=date(2020, 10, 20), transaction_id=1)
+    #     wallet = make_wallet({"USD": "10"})
+
+    #     # when
+    #     expected_error = capture_exception(wallet.autoconversion, item)
+
+    #     # then
+    #     self.assertIsInstance(expected_error, InsufficientAssetError)
 
     #
     def test_buy(self) -> None:
@@ -279,7 +281,7 @@ class WalletTest(unittest.TestCase):
 
     def test_sell(self) -> None:
         # given
-        item = SellItem("PHYS", Decimal("100"), Money("1000", "USD"), Money("2", "USD"), date(2020, 10, 22), 1)
+        item = SellItem("PHYS", Decimal("100"), Money("1000", "USD"), Money("2", "USD"), [], date(2020, 10, 22), 1)
         wallet = make_wallet({"PHYS": "150"})
 
         # when
@@ -293,7 +295,7 @@ class WalletTest(unittest.TestCase):
 
     def test_sell_insufficient_asset_raises_error(self) -> None:
         # given
-        item = SellItem("PHYS", Decimal("100"), Money("1000", "USD"), Money("2", "USD"), date(2020, 10, 22), 1)
+        item = SellItem("PHYS", Decimal("100"), Money("1000", "USD"), Money("2", "USD"), [], date(2020, 10, 22), 1)
         wallet = make_wallet({"PHYS": "50"})
 
         # when
@@ -304,7 +306,7 @@ class WalletTest(unittest.TestCase):
 
     def test_sell_insufficient_money_raises_error(self) -> None:
         # given
-        item = SellItem("PHYS", Decimal("0.1"), Money("1", "USD"), Money("2", "USD"), date(2020, 10, 22), 1)
+        item = SellItem("PHYS", Decimal("0.1"), Money("1", "USD"), Money("2", "USD"), [], date(2020, 10, 22), 1)
         wallet = make_wallet({"PHYS": "50"})
 
         # when
@@ -312,96 +314,3 @@ class WalletTest(unittest.TestCase):
 
         # then
         self.assertIsInstance(expected_error, InsufficientAssetError)
-
-    # def test_pay_in(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-    #     money = Money(100, "USD")
-
-    #     # when
-    #     wallet.pay_in(money)
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("100"))
-
-    # def test_pay_in_two_same_currency(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-    #     money1 = Money(100, "USD")
-    #     money2 = Money(0.50, "USD")
-
-    #     # when
-    #     wallet.pay_in(money1)
-    #     wallet.pay_in(money2)
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("100.50"))
-
-    # def test_pay_in_two_different_currencies(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-    #     money1 = Money(100, "USD")
-    #     money2 = Money(1.50, "EUR")
-
-    #     # when
-    #     wallet.pay_in(money1)
-    #     wallet.pay_in(money2)
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("100"))
-    #     self.assertTrue(EUR in wallet.currencies)
-    #     self.assertEqual(wallet.get(EUR), Decimal("1.50"))
-
-    # def test_pay_out(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-
-    #     # when
-    #     wallet.pay_out(Money(100, "USD"))
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("-100"))
-
-    # def test_pay_out_two_same_currency(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-
-    #     # when
-    #     wallet.pay_out(Money(100, "USD"))
-    #     wallet.pay_out(Money(1.50, "USD"))
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("-101.50"))
-
-    # def test_pay_out_two_different_currencies(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-
-    #     # when
-    #     wallet.pay_out(Money(100, "USD"))
-    #     wallet.pay_out(Money(1.50, "EUR"))
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("-100"))
-    #     self.assertTrue(EUR in wallet.currencies)
-    #     self.assertEqual(wallet.get(EUR), Decimal("-1.50"))
-
-    # def test_pay_in_pay_out_same_currency(self):
-    #     # given
-    #     wallet = CurrencyWallet()
-    #     money1 = Money(100, "USD")
-    #     money2 = Money(0.50, "USD")
-
-    #     # when
-    #     wallet.pay_in(money1)
-    #     wallet.pay_out(money2)
-
-    #     # then
-    #     self.assertTrue(USD in wallet.currencies)
-    #     self.assertEqual(wallet.get(USD), Decimal("99.50"))

@@ -135,7 +135,15 @@ class TaxableItemQuotatorTest(unittest.TestCase):
                 date=datetime.date(2000, 12, 26),
                 transaction_id=1,
             ),
-            SellItem("PHYS", 100, Money("1000", "USD"), Money("1", "USD"), datetime.date(2000, 12, 27), 2),
+            SellItem(
+                asset_name="PHYS",
+                amount=100,
+                received=Money("1000", "USD"),
+                commission=Money("1", "USD"),
+                autoconversions=[],
+                date=datetime.date(2000, 12, 27),
+                transaction_id=2,
+            ),
             amount_sold=100,
         )
 

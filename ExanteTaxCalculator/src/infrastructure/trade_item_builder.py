@@ -87,7 +87,17 @@ class TradeItemBuilder:
         assert transaction_id is not None
         received = Money(inc.sum, inc.asset)
         commission = Money("0", inc.asset) if commission is None else -Money(commission.sum, commission.asset)
-        return SellItem(dec.asset, -dec.sum, received, commission, dec.when, transaction_id)
+        autoconversions = build_autoconversions(self._item.autoconversions)
+
+        return SellItem(
+            asset_name=dec.asset,
+            amount=-dec.sum,
+            received=received,
+            commission=commission,
+            autoconversions=autoconversions,
+            date=dec.when,
+            transaction_id=transaction_id,
+        )
 
     def _build_funding_item(self) -> FundingItem:
         commission = self._item.commission
@@ -135,6 +145,7 @@ class TradeItemBuilder:
         # inc = self._item.increase
         dec = self._item.decrease
         transaction_id = self._item.transaction_id
+        autoconversions = build_autoconversions(self._item.autoconversions)
         assert inc is not None
         assert transaction_id is not None
         # tax may be none; not reported together with dividend
@@ -142,7 +153,14 @@ class TradeItemBuilder:
             raise InvalidTradeError(f"Unexpected operation type, expected TAX, got: {dec.operation_type}")
         dividend = Money(inc.sum, inc.asset)
         tax = -Money(dec.sum, dec.asset) if dec is not None else Money("0", inc.asset)  # tax currency same as asset currency
-        return DividendItem(received_dividend=dividend, paid_tax=tax, date=inc.when, transaction_id=transaction_id, comment=inc.comment)
+        return DividendItem(
+            received_dividend=dividend,
+            paid_tax=tax,
+            autoconversions=autoconversions,
+            date=inc.when,
+            transaction_id=transaction_id,
+            comment=inc.comment,
+        )
 
     def _build_tax_item(self) -> TaxItem:
         dec = self._item.decrease
