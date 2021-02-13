@@ -3,7 +3,8 @@ import datetime
 from money import Money
 from decimal import Decimal
 from typing import Optional, Union
-from src.domain.currency import Currency, USD
+
+from src.domain.currency import Currency
 from src.domain.quotation.dividend_item_pln import DividendItemPLN
 from src.domain.quotation.tax_item_pln import TaxItemPLN
 from src.domain.profit_item import ProfitPLN
@@ -34,18 +35,22 @@ class QuotesProviderStub:
 
 
 def USD_TO_PLN(amount: Union[int, Decimal]) -> Money:
-    quotes_provider = QuotesProviderStub()
-    pln_to_usd = quotes_provider.get_average_pln_for_day(Currency("USD"), datetime.date(2000, 1, 1))
-    assert pln_to_usd is not None
-    pln = amount * pln_to_usd
-    return Money(pln, "PLN")
+    return to_pln("USD", amount)
 
 
 def SGD_TO_PLN(amount: Union[int, Decimal]) -> Money:
+    return to_pln("SGD", amount)
+
+
+def PLN(amount: Union[int, Decimal]) -> Money:
+    return Money(amount, "PLN")
+
+
+def to_pln(currency: str, amount: Union[int, Decimal]) -> Money:
     quotes_provider = QuotesProviderStub()
-    pln_to_usd = quotes_provider.get_average_pln_for_day(Currency("SGD"), datetime.date(2000, 1, 1))
-    assert pln_to_usd is not None
-    pln = amount * pln_to_usd
+    pln_to_currency = quotes_provider.get_average_pln_for_day(Currency(currency), datetime.date(2000, 1, 1))
+    assert pln_to_currency is not None
+    pln = amount * pln_to_currency
     return Money(pln, "PLN")
 
 
@@ -61,10 +66,10 @@ class TraderTest(unittest.TestCase):
 
         # then
         self.assertEqual(trader.owned_asssets, {})
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(trader.report, [])
 
     def test_fund_withdraw_success(self) -> None:
@@ -84,10 +89,10 @@ class TraderTest(unittest.TestCase):
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(trader.report, [])
 
     def test_fund_exchange_success(self) -> None:
@@ -112,10 +117,10 @@ class TraderTest(unittest.TestCase):
         self.assertTrue("USD" in trader.owned_asssets)
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1500"))
 
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(trader.report, [])
 
     def test_dividend_without_tax_success(self) -> None:
@@ -133,10 +138,10 @@ class TraderTest(unittest.TestCase):
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("100"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(100))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, USD_TO_PLN(100))
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, USD_TO_PLN(100 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(len(trader.report), 1)
 
         item = trader.report[0]
@@ -166,17 +171,17 @@ class TraderTest(unittest.TestCase):
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
 
-        self.assertEqual(trader.total_profit, USD_TO_PLN(100))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, USD_TO_PLN(100))
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, USD_TO_PLN(100 * (TAX_PERCENTAGE / 100)))
         self.assertEqual(trader.tax_already_paid, USD_TO_PLN(15))
         self.assertEqual(len(trader.report), 1)
 
         item = trader.report[0]
         assert isinstance(item, DividendItemPLN)
-        self.assertEqual(item.received_dividend_pln, Decimal(300))
+        self.assertEqual(item.received_dividend_pln, USD_TO_PLN(100).amount)
         self.assertEqual(item.dividend_pln_quotation_date, datetime.date(2020, 10, 19))
-        self.assertEqual(item.paid_tax_pln, Decimal(45))
+        self.assertEqual(item.paid_tax_pln, USD_TO_PLN(15).amount)
         self.assertEqual(item.tax_pln_quotation_date, datetime.date(2020, 10, 19))
 
     def test_dividend_separate_from_tax_success(self) -> None:
@@ -198,8 +203,8 @@ class TraderTest(unittest.TestCase):
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(100))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, USD_TO_PLN(100))
+        self.assertEqual(trader.total_cost, PLN(0))
         self.assertEqual(trader.total_tax, USD_TO_PLN(100 * (TAX_PERCENTAGE / 100)))
         self.assertEqual(trader.tax_already_paid, USD_TO_PLN(15))
         self.assertEqual(len(trader.report), 2)
@@ -233,9 +238,9 @@ class TraderTest(unittest.TestCase):
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("985"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))  # no profit at all
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))  # no profit = no tax to pay
+        self.assertEqual(trader.total_income, PLN(0))  # no profit at all
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, PLN(0))  # no profit = no tax to pay
         self.assertEqual(trader.tax_already_paid, USD_TO_PLN(15))  # but they deducted some tax anyway... life. 1 USD = 3 PLN
         self.assertEqual(len(trader.report), 1)
 
@@ -272,10 +277,10 @@ class TraderTest(unittest.TestCase):
         self.assertTrue("PHYS.ARCA" in trader.owned_asssets)
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("50"))
 
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))  # cost is only generated from buy/sell pair
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))  # cost is only generated from buy/sell pair
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(trader.report, [])
 
     def test_fund_buy_with_autoconversion_success(self) -> None:
@@ -307,10 +312,10 @@ class TraderTest(unittest.TestCase):
         self.assertTrue("PHYS.ARCA" in trader.owned_asssets)
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("50"))
 
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))  # cost is only generated from buy/sell pair
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))  # cost is only generated from buy/sell pair
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(trader.report, [])
 
     def test_fund_buy_with_autoconversion_sell_with_autoconversion_success(self) -> None:
@@ -346,10 +351,10 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1200"))
         self.assertEqual(trader.owned_asssets["SGD"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["CLR.SGX"], Decimal("0"))
-        self.assertEqual(trader.total_profit, SGD_TO_PLN(1500))
+        self.assertEqual(trader.total_income, SGD_TO_PLN(1500))
         self.assertEqual(trader.total_cost, SGD_TO_PLN(1000))
         self.assertEqual(trader.total_tax, SGD_TO_PLN(500 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(len(trader.report), 1)
 
         profit = trader.report[0]
@@ -361,9 +366,9 @@ class TraderTest(unittest.TestCase):
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"1"	"TBA0174.001"	"CLR.SGX"	"DIVIDEND"	"2020-12-08 06:27:21"	"31.0"	"SGD"	"19.34"	"1300.0 shares (0.024 per share)"',
-            '"2"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-31.0"	"SGD"	"-19.34"	"1300.0 shares (0.024 per share)"',
-            '"3"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"24.0"	"USD"	"19.3"	"1300.0  (0.024 per share)"',
+            '"1"	"TBA0174.001"	"CLR.SGX"	"DIVIDEND"	"2020-12-08 06:27:21"	"30"	"SGD"	"0"	"1300.0 shares (0.024 per share)"',
+            '"2"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-30.0"	"SGD"	"0"	"1300.0 shares (0.024 per share)"',
+            '"3"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"20.0"	"USD"	"0"	"1300.0  (0.024 per share)"',
         ]
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
@@ -375,17 +380,17 @@ class TraderTest(unittest.TestCase):
         self.assertTrue("SGD" in trader.owned_asssets)
         self.assertEqual(trader.owned_asssets["SGD"], Decimal("0"))
         self.assertTrue("USD" in trader.owned_asssets)
-        self.assertEqual(trader.owned_asssets["USD"], Decimal("24.0"))
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("20.0"))
 
-        self.assertEqual(trader.total_profit, SGD_TO_PLN(31))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
-        self.assertEqual(trader.total_tax, SGD_TO_PLN(31 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, SGD_TO_PLN(30))
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, SGD_TO_PLN(30 * (TAX_PERCENTAGE / 100)))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(len(trader.report), 1)
 
         dividend = trader.report[0]
         assert isinstance(dividend, DividendItemPLN)
-        self.assertEqual(dividend.received_dividend_pln, Decimal(31 * 2))
+        self.assertEqual(dividend.received_dividend_pln, SGD_TO_PLN(30).amount)
         self.assertEqual(dividend.dividend_pln_quotation_date, datetime.date(2020, 12, 7))
         self.assertEqual(dividend.paid_tax_pln, Decimal(0))
         self.assertEqual(dividend.tax_pln_quotation_date, datetime.date(2020, 12, 7))
@@ -418,10 +423,10 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["EUR"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1600"))
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(800))
+        self.assertEqual(trader.total_income, USD_TO_PLN(800))
         self.assertEqual(trader.total_cost, USD_TO_PLN(700))
         self.assertEqual(trader.total_tax, USD_TO_PLN(100 * (TAX_PERCENTAGE / 100)))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(len(trader.report), 1)
 
         profit = trader.report[0]
@@ -457,10 +462,10 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["EUR"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1400"))
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(600))
+        self.assertEqual(trader.total_income, USD_TO_PLN(600))
         self.assertEqual(trader.total_cost, USD_TO_PLN(700))
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(len(trader.report), 1)
 
         profit = trader.report[0]
@@ -492,10 +497,10 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.owned_asssets["SHY.ARCA"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["SHY.NYSE"], Decimal("10"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("0"))
-        self.assertEqual(trader.total_profit, USD_TO_PLN(0))
-        self.assertEqual(trader.total_cost, USD_TO_PLN(0))
-        self.assertEqual(trader.total_tax, USD_TO_PLN(0))
-        self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.total_income, PLN(0))
+        self.assertEqual(trader.total_cost, PLN(0))
+        self.assertEqual(trader.total_tax, PLN(0))
+        self.assertEqual(trader.tax_already_paid, PLN(0))
         self.assertEqual(trader.report, [])
 
     def test_two_years_report_calc_for_first_year(self) -> None:
@@ -532,11 +537,12 @@ class TraderTest(unittest.TestCase):
         # then
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1500"))
-        # self.assertEqual(trader.total_profit, USD_TO_PLN(0))
+        # self.assertEqual(trader.total_income, USD_TO_PLN(0))
         # self.assertEqual(trader.total_cost, USD_TO_PLN(0))
         # self.assertEqual(trader.total_tax, USD_TO_PLN(0))
         # self.assertEqual(trader.tax_already_paid, USD_TO_PLN(0))
         # self.assertEqual(trader.report, [])
+        # TODO: this case
 
     def test_smoke_success(self) -> None:
         # given

@@ -24,7 +24,7 @@ class Trader:
         self._quotes_provider = quotes_provider
         self._tax_calculator = TaxCalculator(tax_percentage)
         self._wallet = Wallet()
-        self._total_profit = Money("0", "PLN")
+        self._total_income = Money("0", "PLN")
         self._total_cost = Money("0", "PLN")
         self._total_tax = Money("0", "PLN")
         self._tax_already_paid = Money("0", "PLN")
@@ -84,7 +84,7 @@ class Trader:
         tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]
         freestanding_taxes_values = [item.paid_tax_pln for item in tax_items_pln]
 
-        self._total_profit, self._total_cost, self._total_tax, self._tax_already_paid = self._tax_calculator.calc_profit_tax(
+        self._total_income, self._total_cost, self._total_tax, self._tax_already_paid = self._tax_calculator.calc_profit_tax(
             buys=buy_values,
             sells=sell_values,
             dividends=dividend_values,
@@ -98,23 +98,27 @@ class Trader:
         return self._wallet.assets
 
     @property
-    def total_profit(self) -> Money:
+    def total_income(self) -> Money:
         """
         TAX form: Przychód
-        This is the total profit from trades and dividends, before deducting tax.
-        Can be negative if transactions resulted in a loss and dividends didn't help.
+        This is the total income: money received from all the sold shares and dividends, reduced by commissions.
+        Always >= 0 PLN
         """
-        return self._total_profit
+        return self._total_income
 
     @property
     def total_cost(self) -> Money:
-        """ TAX form: Koszt uzyskania przychodu """
+        """
+        TAX form: Koszt uzyskania przychodu
+        This is the total cost: money paid for bought shares.
+        Always >= 0 PLN
+        """
         return self._total_cost
 
     @property
     def total_tax(self) -> Money:
         """
-        This is the total tax to be paid as a percentage of total profit.
+        This is the total tax to be paid as a percentage of total_income.
         Always >= 0 PLN
         """
         return self._total_tax
@@ -123,6 +127,7 @@ class Trader:
     def tax_already_paid(self) -> Money:
         """
         This is the tax that was already deducted by the broker (from dividends).
+        It reduces the tax yet to be paid: tax_yet_to_be_paid = max(total_tax - tax_already_paid, 0)
         Always >= 0 PLN
         """
         return self._tax_already_paid
