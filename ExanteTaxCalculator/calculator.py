@@ -1,31 +1,39 @@
 import sys
 import urllib.request
+import logging
+import datetime
 from http import HTTPStatus
 from typing import List, Tuple, Optional
 from decimal import Decimal
-import datetime
 from functools import cache
 
-
-from src.application.trader import Trader
+from src.domain.currency import Currency
 from src.domain.quotation.nbp.quotator_nbp import QuotatorNBP
 from src.domain.reporting.trade_report_printer import TradeReportPrinter
 from src.domain.reporting.trade_report_printer_grouped import TradeReportPrinterGrouped
-from src.domain.currency import Currency
+from src.domain.reporting.assets_printer import AssetPrettyPrinter
+from src.application.trader import Trader
+
+logging.basicConfig(level=logging.INFO)
 
 TAX_PERCENTAGE = Decimal("19.0")
 
 
 class QuotesProviderStub:
+    """ Stub the quotes provider to avoid hitting NBP API when manual testing """
+
     def get_average_pln_for_day(self, currency: Currency, date: datetime.date) -> Optional[Decimal]:
-        if currency != Currency("USD"):
-            raise ValueError(f"Expected USD, got: {currency}")
-        return Decimal("3.74")
+        if currency == Currency("USD"):
+            return Decimal("4")
+        if currency == Currency("SGD"):
+            return Decimal("3")
+
+        raise ValueError(f"Expected USD or SGD, got: {currency}")
 
 
 @cache
 def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
-    """ Return: (response body, response code) """
+    """ Return: (http response body, http response code) """
     try:
         with urllib.request.urlopen(url) as response:
             return response.read(), HTTPStatus.OK
@@ -34,10 +42,39 @@ def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
 
 
 def csv_read(filename: str) -> List[str]:
+    """ Read csv file lines """
     with open(filename) as f:
         lines = f.readlines()
     lines = [x.strip() for x in lines]
     return lines
+
+
+def print_trader_outcomes(trader: Trader) -> None:
+    """ Print all the dividends, taxes, buy-sells that produced owned assets and transactions totals """
+
+    printer = TradeReportPrinterGrouped()
+
+    print()
+    print(printer.to_text(trader.report))
+
+    print()
+    print("AKTYWA:")
+    print(AssetPrettyPrinter(trader.owned_asssets))
+
+    results = trader.results
+    print()
+    print("WYNIKI (kupno/sprzedaż):")
+    print(f"przychód:                     {results.shares_total_income}")
+    print(f"koszty uzyskania przychodu:   {results.shares_total_cost}")
+    print(f"dochód/strata:                {results.shares_total_income - results.shares_total_cost}")
+    print(f"podatek do zapłaty:           {results.shares_total_tax} ({TAX_PERCENTAGE}%)")
+
+    print()
+    print("WYNIKI (dywidendy):")
+    print(f"przychód:                     {results.dividends_total_income}")
+    print(f"podatek od przychodu:         {results.dividends_total_tax} ({TAX_PERCENTAGE}%)")
+    print(f"podatek zapłacony za granicą: {results.dividends_tax_already_paid}")
+    print(f"podatek do zapłaty:           {results.dividends_tax_yet_to_be_paid}")
 
 
 def run_calculator(csv_name: str) -> None:
@@ -50,29 +87,14 @@ def run_calculator(csv_name: str) -> None:
     the calculator needs to know the exact date of buy to get PLN quotation from previous working day to calculate the transaction cost
     """
 
-    csv_report_lines = csv_read(csv_name)
     quotes_provider = QuotatorNBP(fetcher=url_fetch)
-    quotes_provider = QuotesProviderStub()
+    # quotes_provider = QuotesProviderStub()
     trader = Trader(quotes_provider=quotes_provider, tax_percentage=TAX_PERCENTAGE)
 
+    csv_report_lines = csv_read(csv_name)
     trader.trade_items(csv_report_lines)
 
-    printer = TradeReportPrinterGrouped()
-
-    print()
-    print(printer.to_text(trader.report))
-
-    print()
-    print("ASSETS:")
-    print(trader.owned_asssets)
-
-    print()
-    print("RESULTS:")
-    print("total income:     ", trader.total_profit)
-    print("total cost:       ", trader.total_cost)
-    print("profit:           ", trader.total_profit - trader.total_cost)
-    print("total tax:        ", trader.total_tax)
-    print("already paid tax: ", trader.tax_already_paid)
+    print_trader_outcomes(trader)
 
 
 if __name__ == "__main__":
