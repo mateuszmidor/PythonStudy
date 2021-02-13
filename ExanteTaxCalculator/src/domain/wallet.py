@@ -7,20 +7,11 @@ from src.domain.transactions import *
 from src.domain.errors import InsufficientAssetError
 
 
-class PrettyPrintDefaultDict(defaultdict):
-    """ Print assets in nice two columns """
-
-    def __str__(self) -> str:
-        format_item = lambda k, v: "{: <20}: {}".format(k, v)
-        items = [format_item(k, v) for k, v in self.items() if v != 0]
-        return "\n".join(items)
-
-
 class Wallet:
     """ Wallet keeps track of assets, it is updated by buy/sell/fund/withdraw/exchange/tax/dividend/corporateaction operations """
 
     def __init__(self, initial_assets: Mapping[str, Decimal] = {}):
-        self._assets = PrettyPrintDefaultDict(Decimal, initial_assets)
+        self._assets = defaultdict(Decimal, initial_assets)
 
     def fund(self, item: FundingItem) -> None:
         self._assets[item.funding_amount.currency] += item.funding_amount.amount
