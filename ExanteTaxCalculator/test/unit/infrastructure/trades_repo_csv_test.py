@@ -393,10 +393,11 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
 
-    def test_read_input_descending_result_ascending_by_date_success(self) -> None:
+    def test_read_input_descending_result_ascending_by_date_and_transactionid_success(self) -> None:
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"4"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-22 10:30:50"	"50.0"	"EUR"	"50.0"	"None"',
             '"3"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-22 10:30:50"	"100.0"	"EUR"	"100.0"	"None"',
             '"2"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-21 10:30:50"	"100.0"	"EUR"	"100.0"	"None"',
             '"1"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 10:30:50"	"100.0"	"EUR"	"100.0"	"None"',
@@ -407,7 +408,8 @@ class TradesRepoCSVTest(unittest.TestCase):
         repo.load(report_csv, "\t")
 
         # then
-        self.assertEqual(len(repo.items), 3)
+        self.assertEqual(len(repo.items), 4)
         self.assertEqual(repo.items[0].transaction_id, 1)
         self.assertEqual(repo.items[1].transaction_id, 2)
         self.assertEqual(repo.items[2].transaction_id, 3)
+        self.assertEqual(repo.items[3].transaction_id, 4)

@@ -68,7 +68,7 @@ class TradesRepoCSV:
             self._push_row(row)
 
         self._push_item()
-        self._sort_items_by_date_ascending()
+        self._sort_items_by_date_transactionid_ascending()
 
     @property
     def items(self) -> List[TransactionItem]:
@@ -86,7 +86,8 @@ class TradesRepoCSV:
         if expected != actual:
             raise CorruptedReportError(f"Unexpected header format. Want: {expected}, got: {actual}")
 
-    def _sort_items_by_date_ascending(self) -> None:
-        # sort so that funding comes before withdrawal
-        date = lambda item: item.date
-        self._items.sort(key=date)
+    def _sort_items_by_date_transactionid_ascending(self) -> None:
+        # sort items by date so that funding comes before withdrawal,
+        # sort also by transaction_id - in case transactions have same date we want to preserve actual order of events
+        sorting_key = lambda item: (item.date, item.transaction_id)
+        self._items.sort(key=sorting_key)
