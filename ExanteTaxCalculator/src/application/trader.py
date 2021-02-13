@@ -127,10 +127,21 @@ class Trader:
     def tax_already_paid(self) -> Money:
         """
         This is the tax that was already deducted by the broker (from dividends).
-        It reduces the tax yet to be paid: tax_yet_to_be_paid = max(total_tax - tax_already_paid, 0)
+        It reduces the tax yet to be paid.
         Always >= 0 PLN
         """
         return self._tax_already_paid
+
+    @property
+    def tax_yet_to_be_paid(self) -> Money:
+        """
+        This is the tax that finally needs to be paid.
+        Always >= 0 PLN
+        """
+        final_tax = self.total_tax - self.tax_already_paid
+        if final_tax.amount < Decimal(0):
+            final_tax = Money(0, "PLN")
+        return final_tax
 
     @property
     def report(self) -> List[ReportItem]:
