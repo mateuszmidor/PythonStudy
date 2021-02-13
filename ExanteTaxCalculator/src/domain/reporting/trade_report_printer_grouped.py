@@ -14,11 +14,11 @@ from src.domain.reporting.report_item import ReportItem
 
 @dataclass
 class ReportItemGroup:
-    """ Represents a group of assets eg. SHY.ARCA, PHYS.NYSE, TAX, DIVIDEND """
+    """ Represents a group of assets eg. SHY.ARCA, PHYS.NYSE, TAXES, DIVIDENDS """
 
     sum_income: Decimal = Decimal(0)  # PLN, >= 0
     sum_cost: Decimal = Decimal(0)  # PLN, >= 0
-    items: List[str] = field(default_factory=list)  # Printable BuySellPair/Dividend/Tax
+    items: List[str] = field(default_factory=list)  # Human-readable BuySellPair/Dividend/Tax description
 
 
 class TradeReportPrinterGrouped:
@@ -140,4 +140,4 @@ class TradeReportPrinterGrouped:
             pln_quotation_date,
             comment,
         )
-        self._append(tax_string, "2. PODATKI", tax_pln, Decimal(0))
+        self._append(tax_string, "2. PODATKI OD DYWIDEND ZAPŁACONE ZA GRANICĄ", tax_pln, Decimal(0))

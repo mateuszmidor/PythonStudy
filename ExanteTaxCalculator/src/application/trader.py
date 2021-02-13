@@ -12,7 +12,7 @@ from src.domain.profit_calculator import ProfitCalculator
 from src.domain.quotation.buy_sell_pair_pln_quotator import BuySellPairPLNQuotator
 from src.domain.quotation.dividend_item_pln_quotator import DividendItemPLNQuotator
 from src.domain.quotation.tax_item_pln_quotator import TaxItemPLNQuotator
-from src.domain.tax_calculator import TaxCalculator
+from src.domain.tax_calculator import TaxCalculator, CalculationResult
 from src.infrastructure.trades_repo_csv import TradesRepoCSV
 
 from src.domain.reporting.report_item import ReportItem
@@ -24,10 +24,7 @@ class Trader:
         self._quotes_provider = quotes_provider
         self._tax_calculator = TaxCalculator(tax_percentage)
         self._wallet = Wallet()
-        self._total_income = Money("0", "PLN")
-        self._total_cost = Money("0", "PLN")
-        self._total_tax = Money("0", "PLN")
-        self._tax_already_paid = Money("0", "PLN")
+        self._results = CalculationResult()
         self._report: List[ReportItem] = []
 
     def trade_items(self, csv_report_lines: Sequence[str]) -> None:
@@ -70,8 +67,8 @@ class Trader:
         buy_sell_pairs_pln = [buy_sell_item_quotator.quote(item) for item in matcher.buy_sell_pairs]
         profit_calculator = ProfitCalculator()
         profit_items_pln = [profit_calculator.calc_profit(item) for item in buy_sell_pairs_pln]
-        buy_values = [item.paid for item in profit_items_pln]
-        sell_values = [item.received for item in profit_items_pln]
+        buy_values = [item.paid.amount for item in profit_items_pln]
+        sell_values = [item.received.amount for item in profit_items_pln]
 
         # received dividends in PLN
         dividend_quotator = DividendItemPLNQuotator(self._quotes_provider)
@@ -84,7 +81,7 @@ class Trader:
         tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]
         freestanding_taxes_values = [item.paid_tax_pln for item in tax_items_pln]
 
-        self._total_income, self._total_cost, self._total_tax, self._tax_already_paid = self._tax_calculator.calc_profit_tax(
+        self._results = self._tax_calculator.calc_profit_tax(
             buys=buy_values,
             sells=sell_values,
             dividends=dividend_values,
@@ -98,50 +95,8 @@ class Trader:
         return self._wallet.assets
 
     @property
-    def total_income(self) -> Money:
-        """
-        TAX form: Przychód
-        This is the total income: money received from all the sold shares and dividends, reduced by commissions.
-        Always >= 0 PLN
-        """
-        return self._total_income
-
-    @property
-    def total_cost(self) -> Money:
-        """
-        TAX form: Koszt uzyskania przychodu
-        This is the total cost: money paid for bought shares.
-        Always >= 0 PLN
-        """
-        return self._total_cost
-
-    @property
-    def total_tax(self) -> Money:
-        """
-        This is the total tax to be paid as a percentage of total_income.
-        Always >= 0 PLN
-        """
-        return self._total_tax
-
-    @property
-    def tax_already_paid(self) -> Money:
-        """
-        This is the tax that was already deducted by the broker (from dividends).
-        It reduces the tax yet to be paid.
-        Always >= 0 PLN
-        """
-        return self._tax_already_paid
-
-    @property
-    def tax_yet_to_be_paid(self) -> Money:
-        """
-        This is the tax that finally needs to be paid.
-        Always >= 0 PLN
-        """
-        final_tax = self.total_tax - self.tax_already_paid
-        if final_tax.amount < Decimal(0):
-            final_tax = Money(0, "PLN")
-        return final_tax
+    def results(self) -> CalculationResult:
+        return self._results
 
     @property
     def report(self) -> List[ReportItem]:

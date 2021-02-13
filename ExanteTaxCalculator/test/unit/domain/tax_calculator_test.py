@@ -8,16 +8,25 @@ from src.domain.quotation.dividend_item_pln import DividendItemPLN
 from src.domain.quotation.tax_item_pln import TaxItemPLN
 from src.utils.capture_exception import capture_exception
 
-# date =
-# def make_dividend(amount_pln: Decimal) -> DividendItemPLN:
-#     d = DividendItem(received_dividend=Money(amount_pln, "PLN"), paid_tax=Money(tax_pln, "PLN"), date)
+
+TAX_PERCENTAGE = Decimal(19.0)
+
+
+def calc_tax(amount_pln: Decimal) -> Money:
+    return PLN(amount_pln * TAX_PERCENTAGE / 100)
+
+
+def PLN(amount: Decimal) -> Money:
+    return Money(amount, "PLN")
+
+
 class TaxCalculatorTest(unittest.TestCase):
     def test_zero_profit_from_zero_items(self):
         # given
-        calc = TaxCalculator(19)
+        calc = TaxCalculator(TAX_PERCENTAGE)
 
         # when
-        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+        result = calc.calc_profit_tax(
             buys=[],
             sells=[],
             dividends=[],
@@ -25,21 +34,24 @@ class TaxCalculatorTest(unittest.TestCase):
         )
 
         # then
-        self.assertEqual(total_profit, Money("0", "PLN"))
-        self.assertEqual(total_cost, Money("0", "PLN"))
-        self.assertEqual(total_tax, Money("0", "PLN"))
-        self.assertEqual(paid_tax, Money("0", "PLN"))
+        self.assertEqual(result.shares_total_cost, PLN(0))
+        self.assertEqual(result.shares_total_income, PLN(0))
+        self.assertEqual(result.shares_total_tax, PLN(0))
+        self.assertEqual(result.dividends_total_income, PLN(0))
+        self.assertEqual(result.dividends_total_tax, PLN(0))
+        self.assertEqual(result.dividends_tax_already_paid, PLN(0))
+        self.assertEqual(result.dividends_tax_yet_to_be_paid, PLN(0))
 
     def test_positive_profit_from_positive_buy_sell_items(self):
         # given
-        calc = TaxCalculator(19)
+        calc = TaxCalculator(TAX_PERCENTAGE)
         buy1 = Decimal(100)
         sell1 = Decimal(125)
         buy2 = Decimal(100)
         sell2 = Decimal(175)
 
         # when
-        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+        result = calc.calc_profit_tax(
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[],
@@ -47,19 +59,22 @@ class TaxCalculatorTest(unittest.TestCase):
         )
 
         # then
-        self.assertEqual(total_profit, Money("300", "PLN"))
-        self.assertEqual(total_cost, Money("200", "PLN"))
-        self.assertEqual(total_tax, Money("19", "PLN"))
-        self.assertEqual(paid_tax, Money("0", "PLN"))
+        self.assertEqual(result.shares_total_cost, PLN(200))
+        self.assertEqual(result.shares_total_income, PLN(300))
+        self.assertEqual(result.shares_total_tax, calc_tax(100))
+        self.assertEqual(result.dividends_total_income, PLN(0))
+        self.assertEqual(result.dividends_total_tax, PLN(0))
+        self.assertEqual(result.dividends_tax_already_paid, PLN(0))
+        self.assertEqual(result.dividends_tax_yet_to_be_paid, PLN(0))
 
     def test_positive_profit_from_dividends_items(self):
         # given
         dividend1 = Decimal(20)
         dividend2 = Decimal(80)
-        calc = TaxCalculator(19)
+        calc = TaxCalculator(TAX_PERCENTAGE)
 
         # when
-        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+        result = calc.calc_profit_tax(
             buys=[],
             sells=[],
             dividends=[dividend1, dividend2],
@@ -67,19 +82,22 @@ class TaxCalculatorTest(unittest.TestCase):
         )
 
         # then
-        self.assertEqual(total_profit, Money("100", "PLN"))
-        self.assertEqual(total_cost, Money("0", "PLN"))
-        self.assertEqual(total_tax, Money("19", "PLN"))
-        self.assertEqual(paid_tax, Money("0", "PLN"))
+        self.assertEqual(result.shares_total_cost, PLN(0))
+        self.assertEqual(result.shares_total_income, PLN(0))
+        self.assertEqual(result.shares_total_tax, PLN(0))
+        self.assertEqual(result.dividends_total_income, PLN(100))
+        self.assertEqual(result.dividends_total_tax, calc_tax(100))
+        self.assertEqual(result.dividends_tax_already_paid, PLN(0))
+        self.assertEqual(result.dividends_tax_yet_to_be_paid, calc_tax(100))
 
     def test_paid_tax_from_tax_items(self):
         # given
         tax1 = Decimal(20)
         tax2 = Decimal(80)
-        calc = TaxCalculator(19)
+        calc = TaxCalculator(TAX_PERCENTAGE)
 
         # when
-        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+        result = calc.calc_profit_tax(
             buys=[],
             sells=[],
             dividends=[],
@@ -87,10 +105,13 @@ class TaxCalculatorTest(unittest.TestCase):
         )
 
         # then
-        self.assertEqual(total_profit, Money("0", "PLN"))
-        self.assertEqual(total_cost, Money("0", "PLN"))
-        self.assertEqual(total_tax, Money("0", "PLN"))
-        self.assertEqual(paid_tax, Money("100", "PLN"))
+        self.assertEqual(result.shares_total_cost, PLN(0))
+        self.assertEqual(result.shares_total_income, PLN(0))
+        self.assertEqual(result.shares_total_tax, PLN(0))
+        self.assertEqual(result.dividends_total_income, PLN(0))
+        self.assertEqual(result.dividends_total_tax, PLN(0))
+        self.assertEqual(result.dividends_tax_already_paid, PLN(100))
+        self.assertEqual(result.dividends_tax_yet_to_be_paid, PLN(0))
 
     def test_no_tax_from_negative_buy_sell_items(self):
         # given
@@ -98,16 +119,24 @@ class TaxCalculatorTest(unittest.TestCase):
         sell1 = Decimal(100)
         buy2 = Decimal(75)
         sell2 = Decimal(50)
-        calc = TaxCalculator(19)
+        calc = TaxCalculator(TAX_PERCENTAGE)
 
         # when
-        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(buys=[buy1, buy2], sells=[sell1, sell2], dividends=[], taxes=[])
+        result = calc.calc_profit_tax(
+            buys=[buy1, buy2],
+            sells=[sell1, sell2],
+            dividends=[],
+            taxes=[],
+        )
 
         # then
-        self.assertEqual(total_profit, Money("150", "PLN"))
-        self.assertEqual(total_cost, Money("200", "PLN"))
-        self.assertEqual(total_tax, Money("0", "PLN"))
-        self.assertEqual(paid_tax, Money("0", "PLN"))
+        self.assertEqual(result.shares_total_cost, PLN(200))
+        self.assertEqual(result.shares_total_income, PLN(150))
+        self.assertEqual(result.shares_total_tax, PLN(0))
+        self.assertEqual(result.dividends_total_income, PLN(0))
+        self.assertEqual(result.dividends_total_tax, PLN(0))
+        self.assertEqual(result.dividends_tax_already_paid, PLN(0))
+        self.assertEqual(result.dividends_tax_yet_to_be_paid, PLN(0))
 
     def test_all_items_items(self):
         # given
@@ -119,10 +148,10 @@ class TaxCalculatorTest(unittest.TestCase):
         dividend2 = Decimal(80)
         tax1 = Decimal(3)
         tax2 = Decimal(7)
-        calc = TaxCalculator(19)
+        calc = TaxCalculator(TAX_PERCENTAGE)
 
         # when
-        total_profit, total_cost, total_tax, paid_tax = calc.calc_profit_tax(
+        result = calc.calc_profit_tax(
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[dividend1, dividend2],
@@ -130,7 +159,10 @@ class TaxCalculatorTest(unittest.TestCase):
         )
 
         # then
-        self.assertEqual(total_profit, Money("375", "PLN"))
-        self.assertEqual(total_cost, Money("225", "PLN"))
-        self.assertEqual(total_tax, Money(150 * 0.19, "PLN"))
-        self.assertEqual(paid_tax, Money("10", "PLN"))
+        self.assertEqual(result.shares_total_cost, PLN(225))
+        self.assertEqual(result.shares_total_income, PLN(275))
+        self.assertEqual(result.shares_total_tax, calc_tax(50))
+        self.assertEqual(result.dividends_total_income, PLN(100))
+        self.assertEqual(result.dividends_total_tax, calc_tax(100))
+        self.assertEqual(result.dividends_tax_already_paid, PLN(10))
+        self.assertEqual(result.dividends_tax_yet_to_be_paid, calc_tax(100) - 10)
