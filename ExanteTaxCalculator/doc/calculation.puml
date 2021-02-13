@@ -1,37 +1,41 @@
 @startuml Calculation
 
-title From Report.csv to Totals
+title From history.csv to report and totals
 !pragma useVerticalIf off
 
 start
-    :transaction_items = repo.load_from_csv_file\nmatcher = BuySellItemsMatcher();
-    :dividends = []\ntaxes = [];
-    ' if (load successful?) then (no)
-    '     :print failure;
-    '     stop
-    ' else (yes)
-    ' endif
+    :Build ReportRows from transaction history CSV rows:
+      -FUNDING_WITHDRAWAL
+      -TRADE (buy/sell/exchange)
+      -COMMISSION
+      -DIVIDEND
+      -TAX
+      -AUTOCONVERSION
+      -CORPORATE_ACTION;
 
-    partition "Process TransactionItems" {
-        while (has more items?) is (yes)
-            :pop item from items;
-            :pass:\n-funding\n-exchange\n-buy\n-sell\n-autoconversion\n-dividend\n-tax\n-corporateaction\n-withdrawal\n item to wallet/matcher/dividends/taxes;
-            ' if (deserialization successful?) then (yes)
-            '     #lightgreen:http request user create;
-            ' else (no)
-            '     #red:log error;
-            ' endif
-        endwhile (no)
-    }
-    :trades = matcher.items;
-    partition "Quote to PLN" {
-      :trades_pln = quote(trades);
-      :dividends_pln = quote(dividends);
-      :taxes_pln = quote(taxes);
-    }
-    partition "Calc profits and taxes" {
-      :calc = TaxProfitCalculator(tax_percentage);
-      :total_profit, total_tax, paid_tax = calc(trades_pln, dividends_pln, taxes_pln);
-    }
+    :Build TransactionItems from ReportRows:
+      -funding
+      -withdrawal
+      -buy
+      -sell
+      -exchange
+      -dividend (likely with tax)
+      -tax (likely from dividend, but reported later in time)
+      -autoconversion
+      -corporateaction;
+ 
+    :Match Buy and Sell items into BuySellPairs, in FIFO manner, 
+    remembering amount of asset sold per each pair;
+
+    :Quote in PLN (previous working day scheme):
+      -BuySellPairs -> BuySellPairsPLN
+      -DividendItems -> DividendItemsPLN
+      -TaxItems -> TaxItemsPLN;
+
+    :Build Profits (received - paid) from BuySellPairsPLN,
+     based on amount_sold;
+
+    :Build report from Profits, Dividends and Taxes,
+      grouped by asset;
 stop
 @enduml
