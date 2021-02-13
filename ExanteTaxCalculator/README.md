@@ -2,8 +2,8 @@
 
 ## Input needed for tax declaration
 
-- total income = sum of money from sells + dividends ("Przychód")
-- total cost = sum of money paid for buys that are pairedd with sells ("Koszty uzyskania przychodu")
+- total income = sum of money from sells + sum of money from dividends ("Przychód")
+- total cost = sum of money paid for buys that are paired with sells ("Koszty uzyskania przychodu")
 - net profit = total cost - total income ("Dochód")
 - previus years loss ("Strata z lat ubiegłych")
 - tax base = net profit - previus years loss ("Podstawa obliczenia podatku")
@@ -16,7 +16,7 @@
 Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-zagranicznej-i-zysk-na-akcjach-jaki-pit>:
 
 - There is 19% tax to be collected from item sell income (only when sell was profitable)
-- There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and  pay additional 4%
+- There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and pay additional 4%
 - Tax is calculated in PLN, so need to convert trade currency->PLN for all: buy, sell, dividend, tax
 - Quotation average by NBP from previous working day should be used for buy and sell, dividend and tax
 - Profit for sell items is calculated in FIFO manner, eg.
@@ -26,20 +26,36 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
   - Income = (15 x 200USD - commission) in PLN
   - Cost = (10 x 100USD + commission) in PLN + (5 x 150USD + commission) in PLN
 
+## Algorithm
+
+- parse transaction history CSV into dedicated structures and sort by date from old to new
+- match sell transactions with buy transactions in FIFO manner, remembering how many shares were sold in this specific Buy/Sell pair
+- quote all the Buy/Sell pairs in PLN (NBP quotation: take previous working day from sell date)
+- quote all Dividends in PLN
+- quote all Taxes in PLN
+- calc income and cost of every Buy/Sell pair and store into Profit ite. Amounts depend on how many shares were sold in each specific pair;  
+  buy commission increases the cost part and sell commission decreases the income part
+- calc total income as sum of sells and dividends
+- calc total cost as sum of all buys
+- calc tax already paid as sum of all taxes
+- calc profit as total income - total cost
+- calc tax as max(profit, 0) * 19%
+- calc tax to pay as max(tax - tax alread paid, 0)
+
 ## TODO
 
+- [OK] - rename TaxableItem -> BuySellPair
+- [OK]- rename TaxableItemPLN -> BuySellPairPLN
+- [OK] - rename Trader -> BuySellMatcher
+- [OK] - make TradesRepoCSV return items sorted by date ascending so Wallet doesnt protest with insufficient funds
+- [OK] - make AssetWallet to track all buy/sell/fund/withdraw/exchange operations and validate for sufficient funds
+- [OK] - add support for CORPORATE ACTION
+- [OK] - add support for DIVIDEND
+- [OK] - add support for TAX
+- [OK] - add support for AUTOCONVERSION
+- [OK] - complement TaxCalculator with Dividend and Tax support
+- [OK] - add report printer - where did profits and taxes come from
 - rename asset to share (assets in wallet = currencies + shares)
-[OK] - rename TaxableItem -> BuySellPair
-[OK]- rename TaxableItemPLN -> BuySellPairPLN
-[OK] - rename Trader -> BuySellMatcher
-[OK] - make TradesRepoCSV return items sorted by date ascending so Wallet doesnt protest with insufficient funds
-[OK] - make AssetWallet to track all buy/sell/fund/withdraw/exchange operations and validate for sufficient funds
-[OK] - add support for CORPORATE ACTION
-[OK] - add support for DIVIDEND
-[OK] - add support for TAX
-[OK] - add support for AUTOCONVERSION
-[OK] - complement TaxCalculator with Dividend and Tax support
-[OK] - add report printer - where did profits and taxes come from
 - add selecting year to calc the profits and taxes for
 - improvement: make ProfitItem independend from the BuySellIPairPLN -> BuySellPair -> BuyItem & SellItem
 
@@ -75,11 +91,19 @@ Transaction ID  Account ID    Symbol ID       Operation type      When          
 61955151        TBA0174.001   None            FUNDING/WITHDRAWAL  2020-06-23 14:41:21   13400     EUR       13400
 ```
 
-Note: usually TAX follows DIVIDEND, buy sometimes:
+Note: usually DIVIDEND is followed by TAX, buy sometimes:
 - TAX is reported much later with comment pointing to DIVIDEND TransactionID
-- TAX is not reported AT ALL
+- TAX is not reported at all - mostlikely not deducted
 
-??? should currency exchange eur->usd, then usd->eur be subject to 19% tax???
+Questions:
+- should currency exchange pln->usd, then usd->pln be subject to 19% tax???
+- if so, what happens in case of scenario:
+  1. PLN/USD is 3
+  1.  exchange 3000 PLN -> 1000 USD
+  1.  buy shares for 1000 USD
+  1.  PLN/USD grows from 3 to 4
+  1.  sell shares for 1000 USD. Profit = 4000 PLN - 3000 PLN = 1000 PLN, Tax 190PLN
+  1.  exchange 1000 USD -> 4000 PLN. Profit = 4000 PLN - 3000 PLN = 1000 PLN, AGAIN Tax 190PLN?
 
 Operations listed in report:
   - "FUNDING/WITHDRAWAL"
@@ -99,7 +123,7 @@ Operations on wallet:
 - funding - add money to wallet
 - withdrawal - remove money from wallet
 - exchange - exchange of money; one currency for another
-- autoconversion - automatically exchange one currency for another (happens with buy when needed currency is not in wallet)
+- autoconversion - automatically exchange one currency for another (happens with buy when needed currency is not in wallet or for dividends)
 - buy - buy shares for money
 - sell - sell shares for money
 - corporate action - rename shares
