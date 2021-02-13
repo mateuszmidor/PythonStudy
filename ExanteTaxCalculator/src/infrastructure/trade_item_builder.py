@@ -27,8 +27,8 @@ class TradeItemBuilder:
 
         if is_corporate_action(inc, dec):
             result = self._build_corporate_action_item()
-        elif is_dividend(inc) and inc is not None:
-            result = self._build_dividend_item(inc)
+        elif inc is not None and is_dividend(inc):
+            result = self._build_dividend_item()
         elif is_tax(dec):
             result = self._build_tax_item()
         elif is_autoconversion(inc, dec):
@@ -140,9 +140,10 @@ class TradeItemBuilder:
             transaction_id=transaction_id,
         )
 
-    def _build_dividend_item(self, inc: ReportRow) -> DividendItem:
+    def _build_dividend_item(self) -> DividendItem:
         """ Dividend has required dividend part and optional tax part """
-        # inc = self._item.increase
+        inc = self._item.increase
+        assert inc is not None
         dec = self._item.decrease
         transaction_id = self._item.transaction_id
         autoconversions = build_autoconversions(self._item.autoconversions)
@@ -167,7 +168,7 @@ class TradeItemBuilder:
         transaction_id = self._item.transaction_id
         assert dec is not None
         assert transaction_id is not None
-        return TaxItem(paid_tax=-Money(dec.sum, dec.asset), date=dec.when, transaction_id=transaction_id)
+        return TaxItem(paid_tax=-Money(dec.sum, dec.asset), date=dec.when, transaction_id=transaction_id, comment=dec.comment)
 
     def _build_autoconversion_item(self) -> AutoConversionItem:
         commission = self._item.commission

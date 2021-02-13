@@ -355,7 +355,7 @@ class TradesRepoCSVTest(unittest.TestCase):
         # given
         report_csv = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"10"	"TBA0174.001"	"TLT.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15.0"	"USD"	"-12.0"	"Tax"',
+            '"10"	"TBA0174.001"	"TLT.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15.0"	"USD"	"-12.0"	"Tax source comment"',
         ]
         repo = TradesRepoCSV()
 
@@ -369,6 +369,7 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.paid_tax, Money("15", "USD"))
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
+        self.assertEqual(item.comment, "Tax source comment")
 
     def test_read_corporate_action_success(self) -> None:
         # given

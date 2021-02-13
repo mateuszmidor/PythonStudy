@@ -10,3 +10,4 @@ class TaxItem:
     # common transaction item data
     date: datetime = datetime(1970, 1, 1)
     transaction_id: int = 0
+    comment: str = ""

@@ -100,6 +100,7 @@ class TradeReportPrinterGrouped:
             tax=item.source.paid_tax,
             when=item.source.date,
             pln_quotation_date=item.tax_pln_quotation_date,
+            comment=item.source.comment,
         )
 
     def format_dividend(self, item: DividendItemPLN) -> None:
@@ -125,9 +126,9 @@ class TradeReportPrinterGrouped:
                 pln_quotation_date=item.tax_pln_quotation_date,
             )
 
-    def _format_tax(self, tax_pln: Decimal, tax: Money, when: datetime, pln_quotation_date: datetime) -> None:
+    def _format_tax(self, tax_pln: Decimal, tax: Money, when: datetime, pln_quotation_date: datetime, comment: str = "") -> None:
         # Z/S:    -0.52 PLN =    -0.14 USD * 3.7400 PLN/USD (2020-07-16, D-1: 2020-07-15)
-        format_str = "Z/S: {:8.2f} PLN = {:8.2f} {} * {:0.4f} PLN/{} ({:%Y-%m-%d}, D-1: {:%Y-%m-%d})"
+        format_str = "Z/S: {:8.2f} PLN = {:8.2f} {} * {:0.4f} PLN/{} ({:%Y-%m-%d}, D-1: {:%Y-%m-%d}), {}"
         tax_quotation = tax_pln / tax.amount
         tax_string = format_str.format(
             -tax_pln,
@@ -137,5 +138,6 @@ class TradeReportPrinterGrouped:
             tax.currency,
             when,
             pln_quotation_date,
+            comment,
         )
         self._append(tax_string, "2. PODATKI", tax_pln, Decimal(0))

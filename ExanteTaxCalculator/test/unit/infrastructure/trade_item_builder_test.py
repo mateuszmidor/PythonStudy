@@ -200,7 +200,7 @@ class TradeItemBuilderTest(unittest.TestCase):
 
     def test_build_tax(self) -> None:
         # given
-        row = ReportRow(1, "ACCOUNT.001", "TLT.NASDAQ", TAX, DATE, Decimal("-15"), "USD", Decimal("-12"), "Tax")
+        row = ReportRow(1, "ACCOUNT.001", "TLT.NASDAQ", TAX, DATE, Decimal("-15"), "USD", Decimal("-12"), "Tax source comment")
 
         # when
         item = TradeItemBuilder().add(row).build()
@@ -210,6 +210,7 @@ class TradeItemBuilderTest(unittest.TestCase):
         self.assertEqual(item.paid_tax, Money("15", "USD"))
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.comment, "Tax source comment")
 
     def test_build_corporate_action(self) -> None:
         # given
