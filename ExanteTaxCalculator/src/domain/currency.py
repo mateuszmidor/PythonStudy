@@ -9,7 +9,7 @@ class Currency:
 
     def __post_init__(self):
         if not self.value.isupper() or not Currency.is_currency(self.value):
-            raise ValueError(f"{self.value} is not valid currency")
+            raise ValueError(f'"{self.value}" is not valid currency')
 
     def __str__(self) -> str:
         return self.value

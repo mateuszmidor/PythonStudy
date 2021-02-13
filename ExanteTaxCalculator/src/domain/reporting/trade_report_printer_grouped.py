@@ -2,6 +2,7 @@ from typing import List, Dict
 from decimal import Decimal
 from datetime import datetime
 from collections import defaultdict
+from dataclasses import dataclass, field
 
 from money import Money
 
@@ -11,12 +12,21 @@ from src.domain.quotation.tax_item_pln import TaxItemPLN
 from src.domain.reporting.report_item import ReportItem
 
 
+@dataclass
+class ReportItemGroup:
+    """ Represents a group of assets eg. SHY.ARCA, PHYS.NYSE, TAX, DIVIDEND """
+
+    sum_income: Decimal = Decimal(0)  # PLN, >= 0
+    sum_cost: Decimal = Decimal(0)  # PLN, >= 0
+    items: List[str] = field(default_factory=list)  # Printable BuySellPair/Dividend/Tax
+
+
 class TradeReportPrinterGrouped:
     def __init__(self) -> None:
-        self._items: Dict[str, List[str]]
+        self._items: Dict[str, ReportItemGroup]
 
     def to_strings(self, report_items: List[ReportItem]) -> List[str]:
-        self._items = defaultdict(list)
+        self._items = dict()
 
         for item in report_items:
             if isinstance(item, ProfitPLN):
@@ -26,21 +36,36 @@ class TradeReportPrinterGrouped:
             elif isinstance(item, TaxItemPLN):
                 self.format_tax(item)
             else:
-                self._append(f"Expected ReportItem, got: {item}", "ERRORS")
+                self._append(f"Expected ReportItem, got: {item}", "ERRORS", Decimal(0), Decimal(0))
 
         lines: List[str] = []
-        keys = sorted(self._items.keys())
-        for k in keys:
-            lines.append(k)
-            lines.extend(self._items[k])
+        group_names = sorted(self._items.keys())
+        for group_name in group_names:
+            # group title
+            lines.append(group_name)
+
+            # group items
+            group = self._items[group_name]
+            lines.extend(group.items)
+
+            # group summary
+            format_str = "Przychód: {:0.2f}. Koszt: {:0.2f}. Z/S: {:0.2f}"
+            totals = format_str.format(group.sum_income, group.sum_cost, group.sum_income - group.sum_cost)
+            lines.append(totals)
             lines.append("")
+
         return lines
 
     def to_text(self, report: List[ReportItem]) -> str:
         return "\n".join(self.to_strings(report))
 
-    def _append(self, item: str, name: str) -> None:
-        self._items[name].append(item)
+    def _append(self, item: str, name: str, paid, received: Decimal) -> None:
+        if name not in self._items:
+            self._items[name] = ReportItemGroup()
+        group = self._items[name]
+        group.items.append(item)
+        group.sum_cost += paid
+        group.sum_income += received
 
     def format_profit(self, item: ProfitPLN) -> None:
         # Z/S:    -1.87 PLN, Ilość: 10, KUPNO:   915.60 USD * 3.7400 PLN/USD =  3424.34 PLN (2020-06-29, D-1: 2020-06-28), SPRZEDAŻ:   915.10 USD * 3.7400 PLN/USD =  3422.47 PLN (2020-07-24, D-1: 2020-07-23)
@@ -67,7 +92,7 @@ class TradeReportPrinterGrouped:
             item.source.source.sell.date,
             item.source.sell_pln_quotation_date,
         )
-        self._append(profit_str, item.source.source.sell.asset_name)
+        self._append(profit_str, item.source.source.sell.asset_name, item.paid.amount, item.received.amount)
 
     def format_tax(self, item: TaxItemPLN) -> None:
         self._format_tax(
@@ -91,7 +116,7 @@ class TradeReportPrinterGrouped:
             item.dividend_pln_quotation_date,
             item.source.comment,
         )
-        self._append(dividend_str, "1. DYWIDENDY")
+        self._append(dividend_str, "1. DYWIDENDY", Decimal(0), item.received_dividend_pln)
         if item.paid_tax_pln != 0:
             self._format_tax(
                 tax_pln=item.paid_tax_pln,
@@ -113,4 +138,4 @@ class TradeReportPrinterGrouped:
             when,
             pln_quotation_date,
         )
-        self._append(tax_string, "2. PODATKI")
+        self._append(tax_string, "2. PODATKI", tax_pln, Decimal(0))
