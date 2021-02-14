@@ -61,21 +61,6 @@ def print_trader_outcomes(trader: Trader) -> None:
     print("AKTYWA:")
     print(AssetPrettyPrinter(trader.owned_asssets))
 
-    results = trader.results
-    print()
-    print("WYNIKI (kupno/sprzedaż):")
-    print(f"przychód:                     {results.shares_total_income}")
-    print(f"koszty uzyskania przychodu:   {results.shares_total_cost}")
-    print(f"dochód/strata:                {results.shares_total_income - results.shares_total_cost}")
-    print(f"podatek do zapłaty:           {results.shares_total_tax} ({TAX_PERCENTAGE}%)")
-
-    print()
-    print("WYNIKI (dywidendy):")
-    print(f"przychód:                     {results.dividends_total_income}")
-    print(f"podatek od przychodu:         {results.dividends_total_tax} ({TAX_PERCENTAGE}%)")
-    print(f"podatek zapłacony za granicą: {results.dividends_tax_already_paid}")
-    print(f"podatek do zapłaty:           {results.dividends_tax_yet_to_be_paid}")
-
 
 def run_calculator(csv_name: str) -> None:
     """

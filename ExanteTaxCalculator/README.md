@@ -25,6 +25,7 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
   - Sell (15 x 200USD - commission), convert to PLN using quotations from prev working day
   - Income = (15 x 200USD - commission) in PLN
   - Cost = (10 x 100USD + commission) in PLN + (5 x 150USD + commission) in PLN
+- Shares sell income and dividend sell income are calculated separately into separate fields in tax declaration
 
 ## Algorithm
 
@@ -45,7 +46,7 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 ## TODO
 
 - [OK] - rename TaxableItem -> BuySellPair
-- [OK]- rename TaxableItemPLN -> BuySellPairPLN
+- [OK] - rename TaxableItemPLN -> BuySellPairPLN
 - [OK] - rename Trader -> BuySellMatcher
 - [OK] - make TradesRepoCSV return items sorted by date ascending so Wallet doesnt protest with insufficient funds
 - [OK] - make AssetWallet to track all buy/sell/fund/withdraw/exchange operations and validate for sufficient funds
@@ -55,6 +56,9 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 - [OK] - add support for AUTOCONVERSION
 - [OK] - complement TaxCalculator with Dividend and Tax support
 - [OK] - add report printer - where did profits and taxes come from
+- [OK] - group report transactions per asset and include summary: income, cost, profit
+- Separate profit & tax for dividends; they live in separate field in tax declaration
+
 - rename asset to share (assets in wallet = currencies + shares)
 - add selecting year to calc the profits and taxes for
 - improvement: make ProfitItem independend from the BuySellIPairPLN -> BuySellPair -> BuyItem & SellItem
@@ -143,3 +147,5 @@ AutoConversion - like currency exchange but OperationType is AUTOCONVERSION inst
 - cant collectively calc tax from crypto and other investments
 - separate place on declaration sto testify crypto cost and profit  
 - crypto exchange for another crypto is not subject to tax, only sell for real money
+
+

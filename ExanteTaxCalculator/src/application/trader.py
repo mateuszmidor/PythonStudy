@@ -13,10 +13,9 @@ from src.domain.quotation.buy_sell_pair_pln_quotator import BuySellPairPLNQuotat
 from src.domain.quotation.dividend_item_pln_quotator import DividendItemPLNQuotator
 from src.domain.quotation.tax_item_pln_quotator import TaxItemPLNQuotator
 from src.domain.tax_calculator import TaxCalculator, CalculationResult
-from src.infrastructure.trades_repo_csv import TradesRepoCSV
-
-from src.domain.reporting.report_item import ReportItem
+from src.domain.reporting.trade_report import TradeReport
 from src.domain.reporting.trade_report_builder import TradeReportBuilder
+from src.infrastructure.trades_repo_csv import TradesRepoCSV
 
 
 class Trader:
@@ -24,8 +23,7 @@ class Trader:
         self._quotes_provider = quotes_provider
         self._tax_calculator = TaxCalculator(tax_percentage)
         self._wallet = Wallet()
-        self._results = CalculationResult()
-        self._report: List[ReportItem] = []
+        self._report: TradeReport
 
     def trade_items(self, csv_report_lines: Sequence[str]) -> None:
         repo = TradesRepoCSV()
@@ -81,23 +79,24 @@ class Trader:
         tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]
         freestanding_taxes_values = [item.paid_tax_pln for item in tax_items_pln]
 
-        self._results = self._tax_calculator.calc_profit_tax(
+        results = self._tax_calculator.calc_profit_tax(
             buys=buy_values,
             sells=sell_values,
             dividends=dividend_values,
             taxes=freestanding_taxes_values + dividend_taxes_values,
         )
 
-        self._report = TradeReportBuilder.build(profits=profit_items_pln, dividends=dividend_items_pln, taxes=tax_items_pln)
+        self._report = TradeReportBuilder.build(
+            profits=profit_items_pln,
+            dividends=dividend_items_pln,
+            taxes=tax_items_pln,
+            results=results,
+        )
 
     @property
     def owned_asssets(self) -> Dict[str, Decimal]:
         return self._wallet.assets
 
     @property
-    def results(self) -> CalculationResult:
-        return self._results
-
-    @property
-    def report(self) -> List[ReportItem]:
+    def report(self) -> TradeReport:
         return deepcopy(self._report)

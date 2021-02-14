@@ -10,9 +10,9 @@ from src.domain.transactions import *
 from src.domain.reporting.trade_report_printer import TradeReportPrinter
 
 
-def newProfit(when: datetime, paid_pln: int = 0, received_pln: int = 0) -> ProfitPLN:
-    buy = BuyItem(asset_name="PHYS", amount=10, paid=Money(1000, "USD"), commission=Money(1, "USD"), date=datetime(2020, 1, 2))
-    sell = SellItem(asset_name="PHYS", amount=10, received=Money(1000, "USD"), commission=Money(1, "USD"), date=when)
+def newProfit(when: datetime, what="PHYS", paid_pln: int = 0, received_pln: int = 0) -> ProfitPLN:
+    buy = BuyItem(asset_name=what, amount=10, paid=Money(1000, "USD"), commission=Money(1, "USD"), date=datetime(2020, 1, 2))
+    sell = SellItem(asset_name=what, amount=10, received=Money(1000, "USD"), commission=Money(1, "USD"), date=when)
     buy_sell = BuySellPair(buy=buy, sell=sell, amount_sold=10)
     buy_sell_pln = BuySellPairPLN(
         source=buy_sell,

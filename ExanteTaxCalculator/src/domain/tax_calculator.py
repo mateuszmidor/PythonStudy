@@ -15,6 +15,9 @@ def PLN(amount: Union[Decimal, int]) -> Money:
 class CalculationResult:
     """ Note: PIT38 tax declaration has separate fields for shares income and dividends income """
 
+    tax_percentage_used: Decimal = Decimal(19)
+    """ Tax percentage used in calculating this result """
+
     shares_total_income: Money = PLN(0)
     """
     TAX language: Przychód
@@ -95,6 +98,7 @@ class TaxCalculator:
         dividends_tax_yet_to_be_paid = max(dividends_total_tax - dividends_tax_already_paid, Decimal(0))
 
         return CalculationResult(
+            tax_percentage_used=self._tax_percentage,
             shares_total_income=PLN(shares_total_income),
             shares_total_cost=PLN(shares_total_cost),
             shares_total_tax=PLN(shares_total_tax),
