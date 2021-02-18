@@ -8,7 +8,7 @@ from src.infrastructure.trade_item_builder import TradeItemBuilder
 from src.infrastructure.errors import InvalidReportRowError
 from src.domain.transactions import *
 from src.domain.share import Share
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 
 TRADE = ReportRow.OperationType.TRADE
 FUNDING_WITHDRAWAL = ReportRow.OperationType.FUNDING_WITHDRAWAL
@@ -161,7 +161,7 @@ class TradeItemBuilderTest(unittest.TestCase):
         # then
         self.assertIsInstance(item, DividendItem)
         self.assertEqual(item.received_dividend, Money("100", "USD"))
-        self.assertEqual(item.paid_tax, Money("0", "USD"))
+        self.assertIsNone(item.paid_tax)
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
 
@@ -176,7 +176,10 @@ class TradeItemBuilderTest(unittest.TestCase):
         # then
         self.assertIsInstance(item, DividendItem)
         self.assertEqual(item.received_dividend, Money("100", "USD"))
-        self.assertEqual(item.paid_tax, Money("15", "USD"))
+        assert item.paid_tax is not None
+        self.assertEqual(item.paid_tax.paid_tax, Money("15", "USD"))
+        self.assertEqual(item.paid_tax.date, DATE)
+        self.assertEqual(item.paid_tax.comment, "Tax")
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
 
@@ -192,7 +195,7 @@ class TradeItemBuilderTest(unittest.TestCase):
         # then
         self.assertIsInstance(item, DividendItem)
         self.assertEqual(item.received_dividend, Money("31.2", "SGD"))
-        self.assertEqual(item.paid_tax, Money("0", "SGD"))
+        self.assertIsNone(item.paid_tax)
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
         self.assertEqual(item.autoconversions[0].conversion_from, Money("31.2", "SGD"))

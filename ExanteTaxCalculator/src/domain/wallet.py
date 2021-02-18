@@ -56,7 +56,8 @@ class Wallet:
 
     def dividend(self, item: DividendItem) -> None:
         self._assets[item.received_dividend.currency] += item.received_dividend.amount
-        self._assets[item.paid_tax.currency] -= item.paid_tax.amount
+        if item.paid_tax is not None:
+            self._assets[item.paid_tax.paid_tax.currency] -= item.paid_tax.paid_tax.amount
 
         # first receive money, then autoconvert if needed. Eg. happens for Singapor dollars SGD -> USD
         for autoconversion in item.autoconversions:

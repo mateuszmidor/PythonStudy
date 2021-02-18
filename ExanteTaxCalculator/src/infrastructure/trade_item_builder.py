@@ -153,7 +153,7 @@ class TradeItemBuilder:
         if dec is not None and dec.operation_type != ReportRow.OperationType.TAX:
             raise InvalidTradeError(f"Unexpected operation type, expected TAX, got: {dec.operation_type}")
         dividend = Money(inc.sum, inc.asset)
-        tax = -Money(dec.sum, dec.asset) if dec is not None else Money("0", inc.asset)  # tax currency same as asset currency
+        tax = self._build_tax_item() if dec is not None else None
         return DividendItem(
             received_dividend=dividend,
             paid_tax=tax,

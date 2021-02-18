@@ -8,7 +8,7 @@ from src.infrastructure.report_row import ReportRow
 from src.infrastructure.transaction_item_data import TransactionItemData
 from src.infrastructure.errors import InvalidReportRowError
 from src.domain.transactions import *
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 
 
 def newRow(
@@ -25,7 +25,7 @@ def newRow(
         when=datetime(2001, 1, 1),
         sum=sum,
         asset=asset,
-        eur_equivalent=7,
+        eur_equivalent=Decimal(7),
         comment="",
     )
 

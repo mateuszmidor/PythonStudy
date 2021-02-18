@@ -3,21 +3,21 @@ from typing import List, Dict
 from src.domain.profit_item import ProfitPLN
 from src.domain.quotation.dividend_item_pln import DividendItemPLN
 from src.domain.quotation.tax_item_pln import TaxItemPLN
-from src.domain.reporting.trade_report import TradeReport
-from src.domain.tax_calculator import CalculationResult
+from src.domain.reporting.trading_report import TradingReport
+from src.domain.tax_declaration.tax_declaration_numbers import TaxDeclarationNumbers
 
 
-class TradeReportPrinterGrouped:
-    def to_text(self, report: TradeReport) -> str:
+class TradingReportPrinter:
+    def to_text(self, report: TradingReport) -> str:
         report_lines = self.to_strings(report)
         return "\n".join(report_lines)
 
-    def to_strings(self, report: TradeReport) -> List[str]:
+    def to_strings(self, report: TradingReport) -> List[str]:
         lines: List[str] = list()
 
         lines += self._format_dividends(report.dividends)
         lines += self._format_taxes(report.taxes)
-        lines += self._format_profits(report.profits)
+        lines += self._format_profits(report.trades_by_asset)
         lines += self._format_results(report.results)
 
         return lines
@@ -79,7 +79,7 @@ class TradeReportPrinterGrouped:
 
         return result
 
-    def _format_results(self, results: CalculationResult) -> List[str]:
+    def _format_results(self, results: TaxDeclarationNumbers) -> List[str]:
         result: List[str] = list()
 
         def print(s: str = "") -> None:

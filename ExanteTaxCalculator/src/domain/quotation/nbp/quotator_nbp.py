@@ -1,8 +1,8 @@
 import json
 import logging
+import datetime
 from http import HTTPStatus
 from typing import Optional, Callable, Tuple, Mapping, Any
-from datetime import datetime
 from decimal import Decimal
 
 from src.domain.currency import Currency
@@ -53,7 +53,7 @@ class QuotatorNBP:
     def get_average_pln_for_day(self, currency: Currency, date: datetime.date) -> Optional[Decimal]:
         """ Implements QuotesProviderProtocol """
 
-        url = QuotatorNBP._make_url(currency, date)
+        url = QuotatorNBP._make_url(currency.value, date)
         return self._read_average_pln(url)
 
     @staticmethod

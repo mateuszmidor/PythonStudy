@@ -1,0 +1,63 @@
+@startuml class
+
+' title Device and it's innards
+
+    ' enum AuthProtocol {
+    '     none
+    '     md5
+    '     sha
+    ' }
+
+    ' enum PrivProtocol {
+    '     none
+    '     des
+    '     aes
+    ' }
+
+    class TradingReport {
+        +dividends: List[DividendItemPLN]
+        +taxes: List[TaxItemPLN] 
+        +trades_by_asset: Map[str, List[ProfitItemPLN]
+    }
+
+    class TaxDeclarationNumbers {
+        +shares_income
+        +shares_cost
+        +shares_tax
+        +dividends_income
+        +dividends_tax_already_paid
+        +dividends_tax_yet_to_pay
+    }
+
+    TaxDeclarationNumbers --o TradingReport
+    ' AuthProtocol --* SNMPv3Conf
+    ' PrivProtocol --* SNMPv3Conf
+
+    ' class DeviceLabel {
+    '     +id: int
+    '     +name: str
+    '     +color: str
+    ' }
+
+    ' class Site {
+    '     +site_name: str
+    '     +longitude: float
+    '     +latitude: float
+    ' }
+
+    ' class Device #pink {
+    '     +id: int
+    '     +device_type: DeviceType
+    '     +device_subtype: DeviceSubtype
+    '     +...
+    '     +new_dns(...)
+    '     +new_router(...)
+    ' }
+    ' note right: new_dns(...) and new_router(...) \nare convenient constructors
+
+    ' SNMPv3Conf --o Device
+    ' DeviceLabel --o Device
+    ' Site --o Device
+
+
+@enduml

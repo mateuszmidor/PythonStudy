@@ -54,10 +54,10 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 - [OK] - add support for DIVIDEND
 - [OK] - add support for TAX
 - [OK] - add support for AUTOCONVERSION
-- [OK] - complement TaxCalculator with Dividend and Tax support
+- [OK] - complement TaxDeclarationNumbersCalculator with Dividend and Tax support
 - [OK] - add report printer - where did profits and taxes come from
 - [OK] - group report transactions per asset and include summary: income, cost, profit
-- Separate profit & tax for dividends; they live in separate field in tax declaration
+- [OK] - separate profit & tax for dividends; they live in separate field in tax declaration
 
 - rename asset to share (assets in wallet = currencies + shares)
 - add selecting year to calc the profits and taxes for
@@ -135,11 +135,8 @@ Operations on wallet:
 - tax - add tax
 
 AutoConversion - like currency exchange but OperationType is AUTOCONVERSION instead of TRADE
-    NOTICE: Autoconversion is triggered automatically by other kind of operation that needs money, eg
-    in case of trade there can be autoconversino to cover the shares cost and another autoconversion for the commission
-
-
-
+    NOTICE: Autoconversion is triggered automatically by other kind of operation: Buy, Sell, Dividend, eg
+    in case of trade there can be autoconversion to cover the shares cost and another autoconversion for the commission
 
 
 ## CRYPTO

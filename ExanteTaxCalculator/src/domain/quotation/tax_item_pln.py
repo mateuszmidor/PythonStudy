@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from decimal import Decimal
 from dataclasses import dataclass
 
@@ -8,7 +8,7 @@ from src.domain.transactions import TaxItem
 @dataclass(frozen=True)
 class TaxItemPLN:
     source: TaxItem
-    tax_pln_quotation_date: datetime
+    tax_pln_quotation_date: date
     paid_tax_pln: Decimal
 
     def __post_init__(self) -> None:

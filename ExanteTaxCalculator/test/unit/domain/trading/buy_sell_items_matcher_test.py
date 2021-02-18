@@ -1,21 +1,21 @@
 import unittest
-from datetime import date
+from datetime import datetime
 from money import Money
 from decimal import Decimal
 
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 from src.domain.trading.buy_sell_items_matcher import BuySellItemsMatcher
 from src.domain.transactions.buy_item import BuyItem
 from src.domain.transactions.sell_item import SellItem
 from src.domain.errors import InsufficientAssetError
 
 
-def newBuy(name: str, amount: int, paid: Money, commission: Money, date: date, transaction_id: int) -> BuyItem:
+def newBuy(name: str, amount: int, paid: Money, commission: Money, date: datetime, transaction_id: int) -> BuyItem:
     return BuyItem(
         date=date,
         transaction_id=transaction_id,
         asset_name=name,
-        amount=amount,
+        amount=Decimal(amount),
         paid=paid,
         commission=commission,
     )
@@ -37,7 +37,7 @@ class TraderTest(unittest.TestCase):
         matcher = BuySellItemsMatcher()
 
         # when
-        sell_item = SellItem("PHYS", 100, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
+        sell_item = SellItem("PHYS", 100, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         e = capture_exception(matcher.sell, sell_item)
 
         # then
@@ -48,8 +48,8 @@ class TraderTest(unittest.TestCase):
 
         # given
         matcher = BuySellItemsMatcher()
-        buy_item = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
-        sell_item = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 2)
+        buy_item = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        sell_item = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 2)
 
         # when
         matcher.buy(buy_item)
@@ -66,8 +66,8 @@ class TraderTest(unittest.TestCase):
 
         # given
         matcher = BuySellItemsMatcher()
-        buy_item = newBuy("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
-        sell_item = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 2)
+        buy_item = newBuy("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        sell_item = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 2)
 
         # when
         matcher.buy(buy_item)
@@ -84,9 +84,9 @@ class TraderTest(unittest.TestCase):
 
         # given
         matcher = BuySellItemsMatcher()
-        buy_item = newBuy("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
-        sell_item_1 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 2)
-        sell_item_2 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 3)
+        buy_item = newBuy("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        sell_item_1 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 2)
+        sell_item_2 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
 
         # when
         matcher.buy(buy_item)
@@ -108,11 +108,11 @@ class TraderTest(unittest.TestCase):
 
         # given
         matcher = BuySellItemsMatcher()
-        buy_item_1 = newBuy("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
-        buy_item_2 = newBuy("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), date(2000, 10, 20), 2)
-        sell_item_1 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 3)
-        sell_item_2 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 4)
-        sell_item_3 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 30), 5)
+        buy_item_1 = newBuy("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        buy_item_2 = newBuy("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 2)
+        sell_item_1 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
+        sell_item_2 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 4)
+        sell_item_3 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 5)
 
         # when
         matcher.buy(buy_item_1)
@@ -144,9 +144,9 @@ class TraderTest(unittest.TestCase):
 
         # given
         matcher = BuySellItemsMatcher()
-        buy_item_1 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
-        buy_item_2 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 2)
-        sell_item_1 = SellItem("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), date(2000, 10, 30), 3)
+        buy_item_1 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        buy_item_2 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 2)
+        sell_item_1 = SellItem("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
 
         # when
         matcher.buy(buy_item_1)
@@ -168,11 +168,11 @@ class TraderTest(unittest.TestCase):
 
         # given
         matcher = BuySellItemsMatcher()
-        buy_item_1 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 1)
-        buy_item_2 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 2)
-        buy_item_3 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), date(2000, 10, 20), 3)
-        sell_item_1 = SellItem("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), date(2000, 10, 30), 4)
-        sell_item_2 = SellItem("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), date(2000, 10, 30), 5)
+        buy_item_1 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        buy_item_2 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 2)
+        buy_item_3 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 3)
+        sell_item_1 = SellItem("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 4)
+        sell_item_2 = SellItem("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 5)
 
         # when
         matcher.buy(buy_item_1)

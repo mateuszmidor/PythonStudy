@@ -7,7 +7,7 @@ from typing import List
 from src.infrastructure.trades_repo_csv import TradesRepoCSV
 from src.infrastructure.errors import InvalidTradeError, CorruptedReportError
 from src.domain.transactions import *
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 
 
 class TradesRepoCSVTest(unittest.TestCase):
@@ -302,7 +302,7 @@ class TradesRepoCSVTest(unittest.TestCase):
         assert isinstance(repo.items[0], DividendItem)
         item: DividendItem = repo.items[0]
         self.assertEqual(item.received_dividend, Money("31.2", "SGD"))
-        self.assertEqual(item.paid_tax, Money("0", "SGD"))
+        self.assertIsNone(item.paid_tax)
         self.assertEqual(item.date, datetime(2020, 12, 8, 6, 27, 21))
         self.assertEqual(item.transaction_id, 1)
         self.assertEqual(item.autoconversions[0].conversion_from, Money("31.2", "SGD"))
@@ -324,7 +324,7 @@ class TradesRepoCSVTest(unittest.TestCase):
         assert isinstance(repo.items[0], DividendItem)
         item: DividendItem = repo.items[0]
         self.assertEqual(item.received_dividend, Money("100", "USD"))
-        self.assertEqual(item.paid_tax, Money("0", "USD"))
+        self.assertIsNone(item.paid_tax)
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
         self.assertEqual(item.comment, "Dividend source")
@@ -346,7 +346,10 @@ class TradesRepoCSVTest(unittest.TestCase):
         assert isinstance(repo.items[0], DividendItem)
         item: DividendItem = repo.items[0]
         self.assertEqual(item.received_dividend, Money("100", "USD"))
-        self.assertEqual(item.paid_tax, Money("15", "USD"))
+        assert item.paid_tax is not None
+        self.assertEqual(item.paid_tax.paid_tax, Money("15", "USD"))
+        self.assertEqual(item.paid_tax.comment, "Tax Comment")
+        self.assertEqual(item.paid_tax.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
         self.assertEqual(item.transaction_id, 10)
         self.assertEqual(item.comment, "Dividend source")

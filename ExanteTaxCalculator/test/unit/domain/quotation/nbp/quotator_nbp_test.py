@@ -5,6 +5,7 @@ from decimal import Decimal
 from datetime import datetime
 from unittest.mock import create_autospec
 
+from src.domain.currency import USD
 from src.domain.quotation.nbp.quotator_nbp import QuotatorNBP, UrlFetcher
 from src.domain.errors import QuotationError
 
@@ -15,9 +16,9 @@ SOCKET_ERROR = Exception("Network socket error")
 class QuotatorNBPTest(unittest.TestCase):
     def test_correct_url_formed_for_currency_and_date(self) -> None:
         # given
-        currency = "USD"
+        currency = USD
         date = datetime(2020, 5, 16)  # saturday, no quotes for weekend days, so return error 404
-        expected_url = "http://api.nbp.pl/api/exchangerates/rates/a/{:s}/{:%Y-%m-%d}".format(currency, date)
+        expected_url = "http://api.nbp.pl/api/exchangerates/rates/a/{}/{:%Y-%m-%d}".format(currency, date)
         fetcher = create_autospec(UrlFetcher)
         fetcher.return_value = NOT_FOUND_404
         quotator = QuotatorNBP(fetcher)
@@ -30,7 +31,7 @@ class QuotatorNBPTest(unittest.TestCase):
 
     def test_http_404_response_returns_none(self) -> None:
         # given
-        currency = "USD"
+        currency = USD
         date = datetime(2020, 5, 16)  # saturday, no quotes for weekend days
         fetcher = create_autospec(UrlFetcher)
         fetcher.return_value = NOT_FOUND_404
@@ -59,7 +60,7 @@ class QuotatorNBPTest(unittest.TestCase):
             ]
         }
         """
-        currency = "USD"
+        currency = USD
         date = datetime(2020, 5, 15)  # friday
         fetcher = create_autospec(UrlFetcher)
         fetcher.return_value = (response_body, HTTPStatus.OK)
@@ -71,7 +72,7 @@ class QuotatorNBPTest(unittest.TestCase):
 
     def test_infrastructur_exception_raises_exception(self) -> None:
         # given
-        currency = "USD"
+        currency = USD
         date = datetime(2020, 5, 15)  # friday
         fetcher = create_autospec(UrlFetcher)
         fetcher.side_effects = SOCKET_ERROR
@@ -83,8 +84,7 @@ class QuotatorNBPTest(unittest.TestCase):
 
     def test_correct_response_returns_quotation(self) -> None:
         # given
-        response_body = """
-        {
+        response_body = """{
             "table": "A",
             "currency": "dolar amerykański",
             "code": "USD",
@@ -97,7 +97,7 @@ class QuotatorNBPTest(unittest.TestCase):
             ]
         }
         """
-        currency = "USD"
+        currency = USD
         date = datetime(2020, 5, 15)  # friday
         fetcher = create_autospec(UrlFetcher)
         fetcher.return_value = (response_body, HTTPStatus.OK)

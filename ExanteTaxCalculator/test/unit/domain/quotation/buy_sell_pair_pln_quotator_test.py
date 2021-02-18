@@ -4,7 +4,7 @@ from typing import Optional
 from decimal import Decimal
 from money import Money
 
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 from src.domain.transactions.buy_item import BuyItem
 from src.domain.transactions.sell_item import SellItem
 from src.domain.trading.buy_sell_pair import BuySellPair

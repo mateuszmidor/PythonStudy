@@ -1,6 +1,6 @@
 import unittest
 from src.domain.currency import Currency
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 
 
 class CurrencyTest(unittest.TestCase):

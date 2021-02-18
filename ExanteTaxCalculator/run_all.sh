@@ -54,7 +54,7 @@ function setupVirtualEnv() {
 function checkWithMyPy() {
     stage "Running mypy"s
 
-    mypy --ignore-missing-imports src test || die "mypy failed" # dont scan 3rd party libraries
+    mypy --ignore-missing-imports src test/ || die "mypy failed" # dont scan 3rd party libraries
 
     echo "Done"
 }

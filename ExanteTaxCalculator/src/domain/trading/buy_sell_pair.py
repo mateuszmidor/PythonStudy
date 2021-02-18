@@ -12,7 +12,7 @@ class BuySellPair:
     amount_sold: Decimal  # no matter if this pair comes from buy 200,sell 100 or buy 100,sell 200, this is what is to be taxed
 
     def __post__init__(self) -> None:
-        BuySellPair._validate(buy, sell, amount_sold)
+        BuySellPair._validate(self.buy, self.sell, self.amount_sold)
 
     @staticmethod
     def _validate(buy: BuyItem, sell: SellItem, amount_sold: Decimal) -> None:

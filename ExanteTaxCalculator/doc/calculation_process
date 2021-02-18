@@ -17,6 +17,6 @@
 |
 |  +------------------------+                          +------------------+                 +---------------+
 |  |                        |  buy+sell pairs in pln   |                  |  gain or loss   |               +---->+total_profit
-+--> BuySellPairPLNQuotator +--------------------------> ProfitCalculator +-----------------> TaxCalculator |
++--> BuySellPairPLNQuotator +--------------------------> ProfitCalculator +-----------------> TaxDeclarationNumbersCalculator |
    |                        |  BuySellPairsPLNQuoted   |                  |   ProfitItems   |               +---->+total_tax
    +------------------------+                          +------------------+                 +---------------+

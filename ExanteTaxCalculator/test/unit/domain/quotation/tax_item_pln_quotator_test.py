@@ -4,7 +4,7 @@ from typing import Optional
 from decimal import Decimal
 from money import Money
 
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 from src.domain.errors import NoQuotesAvailableError
 from src.domain.currency import Currency
 from src.domain.transactions.tax_item import TaxItem

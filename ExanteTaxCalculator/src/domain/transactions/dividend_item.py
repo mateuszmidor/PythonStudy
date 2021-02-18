@@ -2,9 +2,10 @@ from datetime import datetime
 from money import Money
 from decimal import Decimal
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 from src.domain.transactions.autoconversion_item import AutoConversionItem
+from src.domain.transactions.tax_item import TaxItem
 
 
 @dataclass(frozen=True)
@@ -16,7 +17,7 @@ class DividendItem:
     """
 
     received_dividend: Money
-    paid_tax: Money
+    paid_tax: Optional[TaxItem] = None
     autoconversions: List[AutoConversionItem] = field(default_factory=list)
     # common transaction item data
     date: datetime = datetime(1970, 1, 1)

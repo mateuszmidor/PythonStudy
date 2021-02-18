@@ -1,5 +1,5 @@
+import datetime
 from typing import Optional, Protocol
-from datetime import datetime
 from decimal import Decimal
 
 from src.domain.currency import Currency

@@ -1,12 +1,12 @@
 import unittest
 from money import Money
 from decimal import Decimal
-from src.domain.tax_calculator import TaxCalculator
+from src.domain.tax_declaration.tax_declaration_numbers_calculator import TaxDeclarationNumbersCalculator
 from src.domain.profit_item import ProfitItem
 from src.domain.transactions.dividend_item import DividendItem
 from src.domain.quotation.dividend_item_pln import DividendItemPLN
 from src.domain.quotation.tax_item_pln import TaxItemPLN
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 
 
 TAX_PERCENTAGE = Decimal(19.0)
@@ -23,10 +23,10 @@ def PLN(amount: Decimal) -> Money:
 class TaxCalculatorTest(unittest.TestCase):
     def test_zero_profit_from_zero_items(self):
         # given
-        calc = TaxCalculator(TAX_PERCENTAGE)
+        calc = TaxDeclarationNumbersCalculator(TAX_PERCENTAGE)
 
         # when
-        result = calc.calc_profit_tax(
+        result = calc.calc_tax_declaration_numbers(
             buys=[],
             sells=[],
             dividends=[],
@@ -44,14 +44,14 @@ class TaxCalculatorTest(unittest.TestCase):
 
     def test_positive_profit_from_positive_buy_sell_items(self):
         # given
-        calc = TaxCalculator(TAX_PERCENTAGE)
+        calc = TaxDeclarationNumbersCalculator(TAX_PERCENTAGE)
         buy1 = Decimal(100)
         sell1 = Decimal(125)
         buy2 = Decimal(100)
         sell2 = Decimal(175)
 
         # when
-        result = calc.calc_profit_tax(
+        result = calc.calc_tax_declaration_numbers(
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[],
@@ -71,10 +71,10 @@ class TaxCalculatorTest(unittest.TestCase):
         # given
         dividend1 = Decimal(20)
         dividend2 = Decimal(80)
-        calc = TaxCalculator(TAX_PERCENTAGE)
+        calc = TaxDeclarationNumbersCalculator(TAX_PERCENTAGE)
 
         # when
-        result = calc.calc_profit_tax(
+        result = calc.calc_tax_declaration_numbers(
             buys=[],
             sells=[],
             dividends=[dividend1, dividend2],
@@ -94,10 +94,10 @@ class TaxCalculatorTest(unittest.TestCase):
         # given
         tax1 = Decimal(20)
         tax2 = Decimal(80)
-        calc = TaxCalculator(TAX_PERCENTAGE)
+        calc = TaxDeclarationNumbersCalculator(TAX_PERCENTAGE)
 
         # when
-        result = calc.calc_profit_tax(
+        result = calc.calc_tax_declaration_numbers(
             buys=[],
             sells=[],
             dividends=[],
@@ -119,10 +119,10 @@ class TaxCalculatorTest(unittest.TestCase):
         sell1 = Decimal(100)
         buy2 = Decimal(75)
         sell2 = Decimal(50)
-        calc = TaxCalculator(TAX_PERCENTAGE)
+        calc = TaxDeclarationNumbersCalculator(TAX_PERCENTAGE)
 
         # when
-        result = calc.calc_profit_tax(
+        result = calc.calc_tax_declaration_numbers(
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[],
@@ -148,10 +148,10 @@ class TaxCalculatorTest(unittest.TestCase):
         dividend2 = Decimal(80)
         tax1 = Decimal(3)
         tax2 = Decimal(7)
-        calc = TaxCalculator(TAX_PERCENTAGE)
+        calc = TaxDeclarationNumbersCalculator(TAX_PERCENTAGE)
 
         # when
-        result = calc.calc_profit_tax(
+        result = calc.calc_tax_declaration_numbers(
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[dividend1, dividend2],

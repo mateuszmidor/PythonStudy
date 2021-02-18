@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from src.infrastructure.report_row import ReportRow
-from src.utils.capture_exception import capture_exception
+from test.utils.capture_exception import capture_exception
 from src.infrastructure.errors import InvalidReportRowError
 
 

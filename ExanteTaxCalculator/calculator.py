@@ -9,8 +9,7 @@ from functools import cache
 
 from src.domain.currency import Currency
 from src.domain.quotation.nbp.quotator_nbp import QuotatorNBP
-from src.domain.reporting.trade_report_printer import TradeReportPrinter
-from src.domain.reporting.trade_report_printer_grouped import TradeReportPrinterGrouped
+from src.domain.reporting.trading_report_printer import TradingReportPrinter
 from src.domain.reporting.assets_printer import AssetPrettyPrinter
 from src.application.trader import Trader
 
@@ -52,7 +51,7 @@ def csv_read(filename: str) -> List[str]:
 def print_trader_outcomes(trader: Trader) -> None:
     """ Print all the dividends, taxes, buy-sells that produced owned assets and transactions totals """
 
-    printer = TradeReportPrinterGrouped()
+    printer = TradingReportPrinter()
 
     print()
     print(printer.to_text(trader.report))
@@ -74,9 +73,8 @@ def run_calculator(csv_name: str) -> None:
 
     quotes_provider = QuotatorNBP(fetcher=url_fetch)
     # quotes_provider = QuotesProviderStub()
-    trader = Trader(quotes_provider=quotes_provider, tax_percentage=TAX_PERCENTAGE)
-
     csv_report_lines = csv_read(csv_name)
+    trader = Trader(quotes_provider=quotes_provider, tax_percentage=TAX_PERCENTAGE)
     trader.trade_items(csv_report_lines)
 
     print_trader_outcomes(trader)

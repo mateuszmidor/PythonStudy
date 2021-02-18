@@ -20,7 +20,7 @@
                    |                | |will calc amounts of currency/assets and calculate tax for each SELL activity|
                    |   +------------v-------+-----------------------------------------------------------------------+
                    |   |                    |
-/DOMAIN/           |   |   TaxCalculator    |
+/DOMAIN/           |   |   TaxDeclarationNumbersCalculator    |
                    |   |                    |
                    |   +--------------------+
                    |
