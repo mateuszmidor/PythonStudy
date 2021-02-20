@@ -16,16 +16,17 @@
 Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-zagranicznej-i-zysk-na-akcjach-jaki-pit>:
 
 - There is 19% tax to be collected from item sell income (only when sell was profitable)
-- There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and pay additional 4%
+- There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and pay additional 4%.
+(US seems to claim 4% regardless how much you actually already paid 15% or 30%, though. Should always pay 4% of received dividends sum?)
 - Tax is calculated in PLN, so need to convert trade currency->PLN for all: buy, sell, dividend, tax
-- Quotation average by NBP from previous working day should be used for buy and sell, dividend and tax
+- Quotation average by NBP from previous working day should be used for buy and sell, dividend and tax (so called D-1 day)
 - Profit for sell items is calculated in FIFO manner, eg.
   - Buy  (10 x 100USD - commission), convert to PLN using quotations from prev working day
   - Buy  (5  x 150USD - commission), convert to PLN using quotations from prev working day
   - Sell (15 x 200USD - commission), convert to PLN using quotations from prev working day
   - Income = (15 x 200USD - commission) in PLN
   - Cost = (10 x 100USD + commission) in PLN + (5 x 150USD + commission) in PLN
-- Shares sell income and dividend sell income are calculated separately into separate fields in tax declaration
+- Shares sell income and dividend income are calculated separately into separate fields in tax declaration
 
 ## Algorithm
 
@@ -58,7 +59,6 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 - [OK] - add report printer - where did profits and taxes come from
 - [OK] - group report transactions per asset and include summary: income, cost, profit
 - [OK] - separate profit & tax for dividends; they live in separate field in tax declaration
-
 - rename asset to share (assets in wallet = currencies + shares)
 - add selecting year to calc the profits and taxes for
 - improvement: make ProfitItem independend from the BuySellIPairPLN -> BuySellPair -> BuyItem & SellItem
@@ -141,8 +141,7 @@ AutoConversion - like currency exchange but OperationType is AUTOCONVERSION inst
 
 ## CRYPTO
 
-- cant collectively calc tax from crypto and other investments
-- separate place on declaration sto testify crypto cost and profit  
+- can't collectively calc tax from crypto and other investments
+- separate place on declaration to testify crypto cost and profit  
 - crypto exchange for another crypto is not subject to tax, only sell for real money
-
 
