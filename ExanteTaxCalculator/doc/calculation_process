@@ -1,8 +1,8 @@
-+-----------------+               +---------------+        +--------+                                 +--------+
-|                 |               |               |        |        |                                 |        |
-| Report CSV file +---------------> TradesRepoCSV +--------> Trader +---------------------------------> Wallet +---->+owned_assets
-|                 |   csv lines   |               |  items |        | buy/sell/fund/withdraw/exchange |        |
-+-----------------+               +---------------+        +----+---+                          f       +--------+
++-----------------+               +---------------+        +--------+                                  +--------+
+|                 |               |               |        |        |                                  |        |
+| Report CSV file +---------------> TradesRepoCSV +--------> Trader +----------------------------------> Wallet +---->+owned_assets
+|                 |   csv lines   |               |  items |        | buy/sell/fund/withdraw/exchange  |        |
++-----------------+               +---------------+        +----+---+                                  +--------+
                                                                 |
                                                                 |
                                                        buy/sell |
@@ -15,8 +15,8 @@
 |
 |
 |
-|  +------------------------+                          +------------------+                 +---------------+
-|  |                        |  buy+sell pairs in pln   |                  |  gain or loss   |               +---->+total_profit
+|  +------------------------+                          +------------------+                 +---------------------------------+
+|  |                        |  buy+sell pairs in pln   |                  |  gain or loss   |                                 +---->+total_profit
 +--> BuySellPairPLNQuotator +--------------------------> ProfitCalculator +-----------------> TaxDeclarationNumbersCalculator |
-   |                        |  BuySellPairsPLNQuoted   |                  |   ProfitItems   |               +---->+total_tax
-   +------------------------+                          +------------------+                 +---------------+
+   |                        |  BuySellPairsPLNQuoted   |                  |   ProfitItems   |                                 +---->+total_tax
+   +------------------------+                          +------------------+                 +---------------------------------+
