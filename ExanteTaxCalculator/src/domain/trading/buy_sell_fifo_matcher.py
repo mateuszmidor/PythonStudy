@@ -115,9 +115,14 @@ class OwnedItem:
         return copy.deepcopy(self._item)
 
 
-class BuySellItemsMatcher:
+class BuySellFIFOMatcher:
+    """
+    Match sell items with buy items in FIFO manner.
+    This is necessary to correctly calculate income and income cost.
+    """
+
     def __init__(self) -> None:
-        self._taxable_items: List[BuySellPair] = []
+        self._buy_sell_matches: List[BuySellPair] = []
         self._owned_items: List[OwnedItem] = []
 
     def buy(self, item: BuyItem) -> None:
@@ -126,21 +131,20 @@ class BuySellItemsMatcher:
     def sell(self, item: SellItem) -> None:
         self._validate_sell(item)
 
-        i = 0  # process trades from oldest to newest
+        i = 0  # process buys from oldest to newest - FIFO manner
         amount_to_sell = item.amount
         while amount_to_sell > 0:
             owned_item = self._owned_items[i]
             if owned_item.can_sell(item):
                 amount_sold = owned_item.sell(amount_to_sell)
                 amount_to_sell -= amount_sold
-                actually_sold = amount_sold
                 buy_sell_pair = BuySellPair(buy=owned_item.item, sell=item, amount_sold=amount_sold)
-                self._taxable_items.append(buy_sell_pair)
+                self._buy_sell_matches.append(buy_sell_pair)
             i += 1
 
     @property
     def buy_sell_pairs(self) -> List[BuySellPair]:
-        return copy.deepcopy(self._taxable_items)
+        return copy.deepcopy(self._buy_sell_matches)
 
     def _validate_sell(self, item: SellItem) -> None:
         amount_available = self._get_asset_amount_in_wallet(item.asset_name)

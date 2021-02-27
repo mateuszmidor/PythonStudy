@@ -5,8 +5,10 @@ from src.domain.quotation.buy_sell_pair_pln import BuySellPairPLN
 from src.domain.profit_item import ProfitItem
 
 
-class ProfitCalculator:
-    def calc_profit(self, taxable: BuySellPairPLN) -> ProfitItem:
+class BuySellMoneyFlowCalculator:
+    """ Calculate how much many was spent on buying and then received from selling given buy/sell pair """
+
+    def calc_money_flow(self, taxable: BuySellPairPLN) -> ProfitItem:
         amount_sold = taxable.source.amount_sold
         # amount_sold = min(taxable.buy.amount, taxable.sell.amount) # this is faulty calcultion for testing purpose
 

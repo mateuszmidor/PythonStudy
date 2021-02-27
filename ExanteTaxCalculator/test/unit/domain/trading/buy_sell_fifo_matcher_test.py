@@ -4,7 +4,7 @@ from money import Money
 from decimal import Decimal
 
 from test.utils.capture_exception import capture_exception
-from src.domain.trading.buy_sell_items_matcher import BuySellItemsMatcher
+from src.domain.trading.buy_sell_fifo_matcher import BuySellFIFOMatcher
 from src.domain.transactions.buy_item import BuyItem
 from src.domain.transactions.sell_item import SellItem
 from src.domain.errors import InsufficientAssetError
@@ -24,7 +24,7 @@ def newBuy(name: str, amount: int, paid: Money, commission: Money, date: datetim
 class TraderTest(unittest.TestCase):
     def test_trader_starts_with_empty_report(self):
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
 
         # when
         buy_sell_pairs = matcher.buy_sell_pairs
@@ -34,7 +34,7 @@ class TraderTest(unittest.TestCase):
 
     def test_sell_more_than_available_raises_error(self):
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
 
         # when
         sell_item = SellItem("PHYS", 100, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
@@ -47,7 +47,7 @@ class TraderTest(unittest.TestCase):
         """ Scenario1 """
 
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
         buy_item = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         sell_item = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 2)
 
@@ -65,7 +65,7 @@ class TraderTest(unittest.TestCase):
         """ Scenario2 """
 
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
         buy_item = newBuy("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         sell_item = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 2)
 
@@ -83,7 +83,7 @@ class TraderTest(unittest.TestCase):
         """ Scenario3 """
 
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
         buy_item = newBuy("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         sell_item_1 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 2)
         sell_item_2 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
@@ -107,7 +107,7 @@ class TraderTest(unittest.TestCase):
         """ Scenario4 """
 
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
         buy_item_1 = newBuy("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         buy_item_2 = newBuy("PHYS", 15, Money("1500", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 2)
         sell_item_1 = SellItem("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
@@ -143,7 +143,7 @@ class TraderTest(unittest.TestCase):
         """ Scenario5 """
 
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
         buy_item_1 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         buy_item_2 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 2)
         sell_item_1 = SellItem("PHYS", 20, Money("2000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
@@ -167,7 +167,7 @@ class TraderTest(unittest.TestCase):
         """ Scenario6 """
 
         # given
-        matcher = BuySellItemsMatcher()
+        matcher = BuySellFIFOMatcher()
         buy_item_1 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
         buy_item_2 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 2)
         buy_item_3 = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 3)

@@ -3,7 +3,7 @@ from money import Money
 from datetime import date
 from decimal import Decimal
 
-from src.domain.profit_calculator import ProfitCalculator
+from src.domain.money_flow_calculator import BuySellMoneyFlowCalculator
 from src.domain.transactions.buy_item import BuyItem
 from src.domain.transactions.sell_item import SellItem
 from src.domain.trading.buy_sell_pair import BuySellPair
@@ -65,10 +65,10 @@ class ProfitCalculatorTest(unittest.TestCase):
             sell_commission_pln=Decimal(4),
         )
 
-        calculator = ProfitCalculator()
+        calculator = BuySellMoneyFlowCalculator()
 
         # when
-        profit = calculator.calc_profit(taxable)
+        profit = calculator.calc_money_flow(taxable)
 
         # then
         expected_paid = (3000 + 3) * 100 / 100
@@ -88,10 +88,10 @@ class ProfitCalculatorTest(unittest.TestCase):
             sell_commission_pln=Decimal(4),
         )
 
-        calculator = ProfitCalculator()
+        calculator = BuySellMoneyFlowCalculator()
 
         # when
-        profit = calculator.calc_profit(taxable)
+        profit = calculator.calc_money_flow(taxable)
 
         # then
         expected_paid = (3000 + 3) * 50 / 100
@@ -111,10 +111,10 @@ class ProfitCalculatorTest(unittest.TestCase):
             sell_commission_pln=Decimal(4),
         )
 
-        calculator = ProfitCalculator()
+        calculator = BuySellMoneyFlowCalculator()
 
         # when
-        profit = calculator.calc_profit(taxable)
+        profit = calculator.calc_money_flow(taxable)
 
         # then
         expected_paid = (1500 + 3) * 50 / 50
@@ -134,10 +134,10 @@ class ProfitCalculatorTest(unittest.TestCase):
             sell_commission_pln=Decimal(4),
         )
 
-        calculator = ProfitCalculator()
+        calculator = BuySellMoneyFlowCalculator()
 
         # when
-        profit = calculator.calc_profit(taxable)
+        profit = calculator.calc_money_flow(taxable)
 
         # then
         expected_paid = (3000 + 3) * 25 / 100
@@ -157,10 +157,10 @@ class ProfitCalculatorTest(unittest.TestCase):
             sell_commission_pln=Decimal(4),
         )
 
-        calculator = ProfitCalculator()
+        calculator = BuySellMoneyFlowCalculator()
 
         # when
-        profit = calculator.calc_profit(taxable)
+        profit = calculator.calc_money_flow(taxable)
 
         # then
         expected_paid = (6000 + 3) * 25 / 200
