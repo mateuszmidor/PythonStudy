@@ -1,4 +1,4 @@
-from typing import Sequence, Dict, List
+from typing import Sequence, Dict, List, Tuple
 from decimal import Decimal
 from money import Money
 from copy import deepcopy
@@ -7,8 +7,10 @@ from src.domain.profit_item import ProfitItem
 from src.domain.quotation.buy_sell_pair_pln_quotator import QuotesProviderProtocol
 from src.domain.wallet import Wallet
 from src.domain.transactions import *
-from src.domain.trading.buy_sell_items_matcher import BuySellItemsMatcher
-from src.domain.profit_calculator import ProfitCalculator
+from src.domain.trading.buy_sell_fifo_matcher import BuySellFIFOMatcher
+from src.domain.trading.buy_sell_pair import BuySellPair
+from src.domain.money_flow_calculator import BuySellMoneyFlowCalculator
+from src.domain.quotation.buy_sell_pair_pln import BuySellPairPLN
 from src.domain.quotation.buy_sell_pair_pln_quotator import BuySellPairPLNQuotator
 from src.domain.quotation.dividend_item_pln_quotator import DividendItemPLNQuotator
 from src.domain.quotation.tax_item_pln_quotator import TaxItemPLNQuotator
@@ -25,10 +27,10 @@ class Trader:
         self._wallet = Wallet()
         self._report: TradingReport
 
-    def trade_items(self, csv_report_lines: Sequence[str]) -> None:
+    def trade_items(self, report_csv_lines: Sequence[str]) -> None:
         repo = TradesRepoCSV()
-        repo.load(report_csv_lines=csv_report_lines)
-        matcher = BuySellItemsMatcher()
+        repo.load(report_csv_lines=report_csv_lines)
+        matcher = BuySellFIFOMatcher()
         received_dividends: List[DividendItem] = []
         paid_taxes: List[TaxItem] = []
 
@@ -40,13 +42,13 @@ class Trader:
             elif isinstance(item, BuyItem):
                 self._wallet.buy(item)
                 matcher.buy(item)
-            elif isinstance(item, SellItem):
+            elif isinstance(item, SellItem):  # check date here
                 self._wallet.sell(item)
                 matcher.sell(item)
-            elif isinstance(item, DividendItem):
+            elif isinstance(item, DividendItem):  # check date here
                 self._wallet.dividend(item)
                 received_dividends.append(item)
-            elif isinstance(item, TaxItem):
+            elif isinstance(item, TaxItem):  # check date here
                 self._wallet.tax(item)
                 paid_taxes.append(item)
             elif isinstance(item, CorporateActionItem):
@@ -58,33 +60,39 @@ class Trader:
             else:
                 raise TypeError(f"Not implemented transaction type: {type(item)}")
 
-        # buy-sell profits in PLN
-        buy_sell_item_quotator = BuySellPairPLNQuotator(self._quotes_provider)
-        buy_sell_pairs_pln = [buy_sell_item_quotator.quote(item) for item in matcher.buy_sell_pairs]
-        profit_calculator = ProfitCalculator()
-        profit_items_pln = [profit_calculator.calc_profit(item) for item in buy_sell_pairs_pln]
-        buy_values = [item.paid.amount for item in profit_items_pln]
-        sell_values = [item.received.amount for item in profit_items_pln]
+        # money flow generated from buy/sell pairs in PLN
+        money_flow_pln, buy_amounts, sell_amounts = self._get_buys_sells(matcher.buy_sell_pairs)
 
         # received dividends in PLN
         dividend_quotator = DividendItemPLNQuotator(self._quotes_provider)
         dividend_items_pln = [dividend_quotator.quote(item) for item in received_dividends]
-        dividend_values = [item.received_dividend_pln for item in dividend_items_pln]
+        dividend_amounts = [item.received_dividend_pln for item in dividend_items_pln]
 
         # paid taxes in PLN
         tax_quotator = TaxItemPLNQuotator(self._quotes_provider)
         tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]  # collect standalone taxes
-        tax_items_pln += [item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None]  # add taxes tied to dividends
-        tax_values = [item.paid_tax_pln for item in tax_items_pln]
+        tax_items_pln += [item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None]  # add taxes reported with dividends
+        tax_amounts = [item.paid_tax_pln for item in tax_items_pln]
 
-        results = self._tax_calculator.calc_tax_declaration_numbers(buys=buy_values, sells=sell_values, dividends=dividend_values, taxes=tax_values)
+        results = self._tax_calculator.calc_tax_declaration_numbers(
+            buys=buy_amounts, sells=sell_amounts, dividends=dividend_amounts, taxes=tax_amounts
+        )
 
         self._report = TradingReportBuilder.build(
-            profits=profit_items_pln,
+            profits=money_flow_pln,
             dividends=dividend_items_pln,
             taxes=tax_items_pln,
             results=results,
         )
+
+    def _get_buys_sells(self, buy_sell_pairs: List[BuySellPair]) -> Tuple[List[ProfitItem], List[Decimal], List[Decimal]]:
+        buy_sell_item_quotator = BuySellPairPLNQuotator(self._quotes_provider)
+        buy_sell_pairs_pln = [buy_sell_item_quotator.quote(item) for item in buy_sell_pairs]
+        money_flow_calculator = BuySellMoneyFlowCalculator()
+        money_flow_pln = [money_flow_calculator.calc_money_flow(item) for item in buy_sell_pairs_pln]
+        buy_values = [item.paid.amount for item in money_flow_pln]
+        sell_values = [item.received.amount for item in money_flow_pln]
+        return money_flow_pln, buy_values, sell_values
 
     @property
     def owned_asssets(self) -> Dict[str, Decimal]:
