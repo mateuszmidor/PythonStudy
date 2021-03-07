@@ -10,7 +10,7 @@ from src.domain.transactions.autoconversion_item import AutoConversionItem
 @dataclass(frozen=True)
 class SellItem:
     """
-    Sell transaction someteimes entails autoconversions for unknown reason.
+    Sell transaction sometimes entails autoconversions for unknown reason.
     Eg. selling on Singapore market and receiving singapore dollars SGD.
     There can be 2 separate autoconversions: for the trade itself and for commission
     """

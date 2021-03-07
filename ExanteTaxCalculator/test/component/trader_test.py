@@ -51,12 +51,14 @@ class QuotesProviderStub:
 class TraderTest(unittest.TestCase):
     def test_empty_input_empty_output(self) -> None:
         # given
-        csv_report_lines = ['"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"']
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"'
+        ]
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2000)
 
         # then
         self.assertEqual(trader.owned_asssets, {})
@@ -84,7 +86,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1"))
@@ -113,7 +115,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertTrue("EUR" in trader.owned_asssets)
@@ -143,7 +145,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("100"))
@@ -177,7 +179,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
@@ -214,7 +216,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))
@@ -249,7 +251,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("985"))
@@ -258,7 +260,9 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.shares_total_tax, PLN(0))  # no profit = no tax to pay
         self.assertEqual(trader.report.results.dividends_total_income, PLN(0))
         self.assertEqual(trader.report.results.dividends_total_tax, PLN(0))
-        self.assertEqual(trader.report.results.dividends_tax_already_paid, USD_TO_PLN(15))  # but they deducted some tax anyway... life.
+        self.assertEqual(
+            trader.report.results.dividends_tax_already_paid, USD_TO_PLN(15)
+        )  # but they deducted some tax anyway... life.
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
@@ -286,7 +290,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertTrue("EUR" in trader.owned_asssets)
@@ -326,7 +330,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertTrue("EUR" in trader.owned_asssets)
@@ -374,7 +378,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1200"))
@@ -407,7 +411,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertTrue("SGD" in trader.owned_asssets)
@@ -453,7 +457,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         total_tax = 100 * (TAX_PERCENTAGE / 100)
@@ -497,7 +501,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["EUR"], Decimal("0"))
@@ -536,7 +540,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["SHY.ARCA"], Decimal("0"))
@@ -561,11 +565,11 @@ class TraderTest(unittest.TestCase):
             # sell 50 PHYS for 600 USD
             '"6001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
             '"6002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-23 20:40:55"	"601.0"	"USD"	"0"	"None"',
-            '"6003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2020-10-23 20:40:55"	"-1.0"	"USD"	"0"	"None"',
+            '"6003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2021-10-23 20:40:55"	"-1.0"	"USD"	"0"	"None"',
             # buy 50 PHYS for 700 USD
             '"5001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-22 20:40:55"	"50"	"PHYS.ARCA"	"0"	"None"',
             '"5002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-22 20:40:55"	"-699.0"	"USD"	"0"	"None"',
-            '"5003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2020-10-22 20:40:55"	"-1.0"	"USD"	"0"	"None"',
+            '"5003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2021-10-22 20:40:55"	"-1.0"	"USD"	"0"	"None"',
             # year 2020: we profit 100 USD
             # sell 50 PHYS for 800 USD
             '"4001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
@@ -582,20 +586,72 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
         self.assertEqual(trader.owned_asssets["USD"], Decimal("1500"))
-        # self.assertEqual(trader.report.results.shares_total_income, USD_TO_PLN(0))
-        # self.assertEqual(trader.report.results.shares_total_cost, USD_TO_PLN(0))
-        # self.assertEqual(trader.report.results.shares_total_tax, USD_TO_PLN(0))
-        # self.assertEqual(trader.report.results.dividends_tax_already_paid, USD_TO_PLN(0))
-        # self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, USD_TO_PLN(0))
-        # self.assertEqual(trader.report.trades_by_asset, {})
-        # self.assertEqual(trader.report.dividends, [])
-        # self.assertEqual(trader.report.taxes, [])
-        # TODO: this case
+        self.assertEqual(trader.report.results.shares_total_income, USD_TO_PLN(800))
+        self.assertEqual(trader.report.results.shares_total_cost, USD_TO_PLN(700))
+        self.assertEqual(trader.report.results.shares_total_tax, USD_TO_PLN(calc_tax(100)))
+        self.assertEqual(trader.report.results.dividends_tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, USD_TO_PLN(0))
+
+        profit = trader.report.trades_by_asset["PHYS.ARCA"][0]
+        assert isinstance(profit, ProfitPLN)
+        self.assertEqual(profit.paid, USD_TO_PLN(700))
+        self.assertEqual(profit.received, USD_TO_PLN(800))
+
+        self.assertEqual(trader.report.dividends, [])
+        self.assertEqual(trader.report.taxes, [])
+
+    def test_two_years_report_calc_for_second_year(self) -> None:
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            # year 2021: we lose 100 USD
+            # sell 50 PHYS for 600 USD
+            '"6001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
+            '"6002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-23 20:40:55"	"601.0"	"USD"	"0"	"None"',
+            '"6003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2021-10-23 20:40:55"	"-1.0"	"USD"	"0"	"None"',
+            # buy 50 PHYS for 700 USD
+            '"5001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-22 20:40:55"	"50"	"PHYS.ARCA"	"0"	"None"',
+            '"5002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-22 20:40:55"	"-699.0"	"USD"	"0"	"None"',
+            '"5003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2021-10-22 20:40:55"	"-1.0"	"USD"	"0"	"None"',
+            # year 2020: we profit 100 USD
+            # sell 50 PHYS for 800 USD
+            '"4001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
+            '"4002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"801.0"	"USD"	"0"	"None"',
+            '"4003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2020-10-23 20:40:55"	"-1.0"	"USD"	"0"	"None"',
+            # buy 50 PHYS for 700 USD
+            '"3001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-22 20:40:55"	"50"	"PHYS.ARCA"	"0"	"None"',
+            '"3002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-22 20:40:55"	"-699.0"	"USD"	"0"	"None"',
+            '"3003"	"TBA9999.001"	"PHYS.ARCA"	"COMMISSION"	"2020-10-22 20:40:55"	"-1.0"	"USD"	"0"	"None"',
+            # add 1500 USD
+            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"1500.0"	"USD"	"0"	"None"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines, 2021)
+
+        # then
+        self.assertEqual(trader.owned_asssets["PHYS.ARCA"], Decimal("0"))
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("1500"))
+        self.assertEqual(trader.report.results.shares_total_income, USD_TO_PLN(600))
+        self.assertEqual(trader.report.results.shares_total_cost, USD_TO_PLN(700))
+        self.assertEqual(trader.report.results.shares_total_tax, USD_TO_PLN(calc_tax(0)))
+        self.assertEqual(trader.report.results.dividends_tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, USD_TO_PLN(0))
+
+        profit = trader.report.trades_by_asset["PHYS.ARCA"][0]
+        assert isinstance(profit, ProfitPLN)
+        self.assertEqual(profit.paid, USD_TO_PLN(700))
+        self.assertEqual(profit.received, USD_TO_PLN(600))
+
+        self.assertEqual(trader.report.dividends, [])
+        self.assertEqual(trader.report.taxes, [])
 
     def test_smoke_success(self) -> None:
         # given
@@ -751,7 +807,7 @@ class TraderTest(unittest.TestCase):
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
         # when
-        trader.trade_items(csv_report_lines)
+        trader.trade_items(csv_report_lines, 2020)
 
         # then
         # no exception was raised

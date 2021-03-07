@@ -5,7 +5,7 @@ import datetime
 from http import HTTPStatus
 from typing import List, Tuple, Optional
 from decimal import Decimal
-from functools import cache
+from functools import lru_cache
 
 from src.domain.currency import Currency
 from src.domain.quotation.nbp.quotator_nbp import QuotatorNBP
@@ -30,7 +30,7 @@ class QuotesProviderStub:
         raise ValueError(f"Expected USD or SGD, got: {currency}")
 
 
-@cache
+@lru_cache
 def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
     """ Return: (http response body, http response code) """
     try:
@@ -40,7 +40,7 @@ def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
         return err.read(), err.code
 
 
-def csv_read(filename: str) -> List[str]:
+def csv_read_utf8(filename: str) -> List[str]:
     """ Read csv file lines """
     with open(filename) as f:
         lines = f.readlines()
@@ -61,7 +61,7 @@ def print_trader_outcomes(trader: Trader) -> None:
     print(AssetPrettyPrinter(trader.owned_asssets))
 
 
-def run_calculator(csv_name: str) -> None:
+def run_calculator(csv_name: str, year: int) -> None:
     """
     Calculator needs full transaction history from all the years until now,
     because it validates if transactions are valid (for buy - if we have enough money in wallet to successfuly buy)
@@ -73,15 +73,15 @@ def run_calculator(csv_name: str) -> None:
 
     quotes_provider = QuotatorNBP(fetcher=url_fetch)
     # quotes_provider = QuotesProviderStub()
-    csv_report_lines = csv_read(csv_name)
+    csv_report_lines = csv_read_utf8(csv_name)
     trader = Trader(quotes_provider=quotes_provider, tax_percentage=TAX_PERCENTAGE)
-    trader.trade_items(csv_report_lines)
+    trader.trade_items(csv_report_lines, year)
 
     print_trader_outcomes(trader)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Please provide transaction report CSV as parameter")
+    if len(sys.argv) < 3:
+        print("Please provide transaction report CSV and year as parameters")
     else:
-        run_calculator(sys.argv[1])
+        run_calculator(sys.argv[1], int(sys.argv[2]))
