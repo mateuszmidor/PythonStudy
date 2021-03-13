@@ -80,11 +80,10 @@ class TradesRepoCSV:
         if header is None:
             raise CorruptedReportError("Missing header")
 
-        expected = ",".join(TradesRepoCSV.EXPECTED_HEADER)
-        actual = ",".join(header)
+        missing_columns = [c for c in TradesRepoCSV.EXPECTED_HEADER if c not in header]
 
-        if expected != actual:
-            raise CorruptedReportError(f"Unexpected header format. Want: {expected}, got: {actual}")
+        if len(missing_columns) > 0:
+            raise CorruptedReportError(f"Missing columns in header: {missing_columns}")
 
     def _sort_items_by_date_transactionid_ascending(self) -> None:
         # sort items by date so that funding comes before withdrawal,

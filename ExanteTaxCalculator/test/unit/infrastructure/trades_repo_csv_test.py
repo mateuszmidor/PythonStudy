@@ -76,6 +76,18 @@ class TradesRepoCSVTest(unittest.TestCase):
         # then
         self.assertEqual(len(repo.items), 0)
 
+    def test_read_extra_column_success(self) -> None:
+        # given
+        # ISIN is the extra column
+        report_csv = ['"Transaction ID"	"Account ID"	"Symbol ID"	"ISIN"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"']
+        repo = TradesRepoCSV()
+
+        # when
+        repo.load(report_csv)
+
+        # then
+        self.assertEqual(len(repo.items), 0)
+
     def test_read_single_buy_success(self) -> None:
         # given
         report_csv = [
