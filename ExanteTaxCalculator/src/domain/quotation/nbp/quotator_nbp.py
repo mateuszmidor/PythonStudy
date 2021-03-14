@@ -31,10 +31,10 @@ Below example implementation:
 @cache
 def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
     try:
-        with urllib.request.urlopen(url) as response:
-            return response.read(), HTTPStatus.OK
-    except urllib.request.HTTPError as err:
-        return err.read(), err.code
+        r = requests.get(url)
+        return r.text, HTTPStatus(r.status_code)
+    except requests.exceptions.HTTPError as err:
+        return str(err), err.response.status_code
 """
 
 

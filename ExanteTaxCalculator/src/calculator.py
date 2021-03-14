@@ -1,7 +1,7 @@
 import sys
-import urllib.request
 import logging
 import datetime
+import requests
 from http import HTTPStatus
 from typing import List, Tuple, Optional
 from decimal import Decimal
@@ -34,10 +34,10 @@ class QuotesProviderStub:
 def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
     """ Return: (http response body, http response code) """
     try:
-        with urllib.request.urlopen(url) as response:
-            return response.read(), HTTPStatus.OK
-    except urllib.request.HTTPError as err:
-        return err.read(), err.code
+        r = requests.get(url)
+        return r.text, HTTPStatus(r.status_code)
+    except requests.exceptions.HTTPError as err:
+        return str(err), err.response.status_code
 
 
 def csv_read_utf8(filename: str) -> List[str]:
@@ -80,8 +80,13 @@ def run_calculator(csv_name: str, year: int) -> None:
     print_trader_outcomes(trader)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    " Entry point of command installed with: pip install ."
     if len(sys.argv) < 3:
         print("Please provide transaction report CSV and year as parameters")
     else:
         run_calculator(sys.argv[1], int(sys.argv[2]))
+
+
+if __name__ == "__main__":
+    main()

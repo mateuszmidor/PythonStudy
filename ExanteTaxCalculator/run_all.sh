@@ -62,7 +62,7 @@ function checkWithMyPy() {
 function runProgram() {
     stage "Running program"
 
-    $PYTHON calculator.py $@
+    PYTHONPATH=$(pwd) $PYTHON src/calculator.py $@
 
     echo "Done"
 }
