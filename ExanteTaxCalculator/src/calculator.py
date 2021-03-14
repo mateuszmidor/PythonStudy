@@ -15,6 +15,7 @@ from src.application.trader import Trader
 
 logging.basicConfig(level=logging.INFO)
 
+# Stock market profit tax in Poland as of 2021
 TAX_PERCENTAGE = Decimal("19.0")
 
 
@@ -81,7 +82,7 @@ def run_calculator(csv_name: str, year: int) -> None:
 
 
 def main() -> None:
-    " Entry point of command installed with: pip install ."
+    " Entry point for exante-calculator command installed with: pip install ."
     if len(sys.argv) < 3:
         print("Please provide transaction report CSV and year as parameters")
     else:

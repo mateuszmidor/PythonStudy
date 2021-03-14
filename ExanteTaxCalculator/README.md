@@ -1,5 +1,29 @@
 # Exante trading tax calculator for polish tax declaration
 
+## Install
+
+```bash
+pip install .
+```
+
+## Run
+
+```bash
+exante-calculator exante_report.csv 2020 
+```
+
+## Development
+
+Run tests:
+```bash
+./run_all --tests
+```
+
+Run command:
+```bash
+./run_all data/exante_report.csv 2020
+```
+
 ## Input needed for tax declaration
 
 - total income = sum of money from sells + sum of money from dividends ("Przychód")
