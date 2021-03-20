@@ -1,5 +1,9 @@
 # Exante trading tax calculator for polish tax declaration
 
+## Requirements
+
+- python3, pip3
+
 ## Install
 
 ```bash
