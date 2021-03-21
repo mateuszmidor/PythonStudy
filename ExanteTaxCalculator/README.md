@@ -20,7 +20,7 @@ exante-calculator exante_report.csv 2020
 
 Run tests:
 ```bash
-./run_all --tests
+./run_all --test
 ```
 
 Run command:
@@ -45,7 +45,7 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 
 - There is 19% tax to be collected from item sell income (only when sell was profitable)
 - There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and pay additional 4%.
-(US seems to claim 4% regardless how much you actually already paid 15% or 30%, though. Should always pay 4% of received dividends sum?)
+(US seems to claim 4% regardless how much you actually already paid 15% (with W-8BEN signed) or 30%, though. Should always pay 4% of received dividends sum?)
 - Tax is calculated in PLN, so need to convert trade currency->PLN for all: buy, sell, dividend, tax
 - Quotation average by NBP from previous working day should be used for buy and sell, dividend and tax (so called D-1 day)
 - Profit for sell items is calculated in FIFO manner, eg.
