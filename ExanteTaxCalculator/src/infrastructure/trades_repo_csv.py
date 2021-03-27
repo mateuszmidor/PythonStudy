@@ -23,6 +23,14 @@ from src.infrastructure.errors import CorruptedReportError
 
 
 class TradesRepoCSV:
+    """
+    TradesRepoCSV reads repo CSV file row by row and matches multi-row items into actual TransactionItems.
+    EG. for BuyItem there are 3 rows:
+    - money paid
+    - asset received
+    - commission paid
+    """
+
     EXPECTED_HEADER = [
         "Transaction ID",
         "Account ID",

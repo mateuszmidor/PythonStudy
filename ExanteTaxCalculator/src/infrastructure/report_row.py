@@ -9,6 +9,8 @@ from src.infrastructure.errors import InvalidReportRowError
 
 @dataclass
 class ReportRow:
+    """ ReportRow is raw CSV report row parsed into a dataclass. """
+
     class OperationType(Enum):
         """ Names reflect Exante Transaction Report 'Operation type' column """
 
