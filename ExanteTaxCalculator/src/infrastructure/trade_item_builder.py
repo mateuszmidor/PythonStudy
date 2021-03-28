@@ -11,6 +11,10 @@ from src.infrastructure.errors import InvalidTradeError, InvalidReportRowError
 
 
 class TradeItemBuilder:
+    """
+    TradeItemBuilder recognizes and builds specific TransactionItem based on received ReportRows.
+    """
+
     def __init__(self) -> None:
         self._item = TransactionItemData()
 

@@ -12,6 +12,11 @@ def is_money(row: ReportRow) -> bool:
 
 @dataclass
 class TransactionItemData:
+    """
+    TransactionItemData fills TransactionItem attributes from passed ReportRow.
+    It helps in building TransactionItems from report CSV rows.
+    """
+
     increase: Optional[ReportRow] = None
     decrease: Optional[ReportRow] = None
     commission: Optional[ReportRow] = None
