@@ -386,6 +386,27 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.transaction_id, 10)
         self.assertEqual(item.comment, "Tax source comment")
 
+    def test_read_issuance_fee_success(self) -> None:
+        # given
+        report_csv = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"10"	"TBA0174.001"	"GSK.NYSE"	"ISSUANSE FEE"	"2020-06-24 19:52:01"	"-15.0"	"USD"	"-12.0"	"Issuance fee comment"',
+        ]
+
+        repo = TradesRepoCSV()
+
+        # when
+        repo.load(report_csv, "\t")
+
+        # then
+        self.assertEqual(len(repo.items), 1)
+        assert isinstance(repo.items[0], IssuanceFeeItem)
+        item: IssuanceFeeItem = repo.items[0]
+        self.assertEqual(item.paid_fee, Money("15", "USD"))
+        self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
+        self.assertEqual(item.transaction_id, 10)
+        self.assertEqual(item.comment, "Issuance fee comment")
+
     def test_read_corporate_action_success(self) -> None:
         # given
         report_csv = [

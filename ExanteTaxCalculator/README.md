@@ -44,7 +44,7 @@ Run command:
 Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-zagranicznej-i-zysk-na-akcjach-jaki-pit>:
 
 - There is 19% tax to be collected from item sell income (only when sell was profitable)
-- There is 19% tax to be collected from dividend income, not all but most most dividends are auto-taxed 15% so need calc and pay additional 4%.
+- There is 19% tax to be collected from dividend income, not all but most dividends are auto-taxed 15% so need calc and pay additional 4%.
 (US seems to claim 4% regardless how much you actually already paid 15% (with W-8BEN signed) or 30%, though. Should always pay 4% of received dividends sum?)
 - Tax is calculated in PLN, so need to convert trade currency->PLN for all: buy, sell, dividend, tax
 - Quotation average by NBP from previous working day should be used for buy and sell, dividend and tax (so called D-1 day)
@@ -66,11 +66,12 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 - calc income and cost of every Buy/Sell pair and store into Profit ite. Amounts depend on how many shares were sold in each specific pair;  
   buy commission increases the cost part and sell commission decreases the income part
 - calc total income as sum of sells and dividends
-- calc total cost as sum of all buys
+- calc total cost as sum of all buys and issuance fees
 - calc tax already paid as sum of all taxes
 - calc profit as total income - total cost
 - calc tax as max(profit, 0) * 19%
 - calc tax to pay as max(tax - tax alread paid, 0)
+- what to do with "issuanse fee" that relates to dividends?
 
 ## TODO
 
@@ -87,8 +88,8 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 - [OK] - add report printer - where did profits and taxes come from
 - [OK] - group report transactions per asset and include summary: income, cost, profit
 - [OK] - separate profit & tax for dividends; they live in separate field in tax declaration
+- [OK] - add selecting year to calc the profits and taxes for
 - rename asset to share (assets in wallet = currencies + shares)
-- add selecting year to calc the profits and taxes for
 - improvement: make ProfitItem independend from the BuySellIPairPLN -> BuySellPair -> BuyItem & SellItem
 
 ## Exante data
@@ -145,6 +146,7 @@ Operations listed in report:
   - "DIVIDEND"
   - "TAX"
   - "CORPORATE ACTION"
+  - "ISSUANSE FEE" - related to dividend (any other relations?)
 
 Glossary:
 - money - currency with 3 characters symbol like USD, CAD, EUR
@@ -161,6 +163,7 @@ Operations on wallet:
 - corporate action - rename shares
 - dividend - add money, optionally also add tax
 - tax - add tax
+- issuance fee - substract money from wallet. That's it
 
 AutoConversion - like currency exchange but OperationType is AUTOCONVERSION instead of TRADE
     NOTICE: Autoconversion is triggered automatically by other kind of operation: Buy, Sell, Dividend, eg

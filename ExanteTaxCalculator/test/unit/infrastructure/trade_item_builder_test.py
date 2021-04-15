@@ -17,6 +17,7 @@ AUTOCONVERSION = ReportRow.OperationType.AUTOCONVERSION
 DIVIDEND = ReportRow.OperationType.DIVIDEND
 TAX = ReportRow.OperationType.TAX
 CORPORATE_ACTION = ReportRow.OperationType.CORPORATE_ACTION
+ISSUANCE_FEE = ReportRow.OperationType.ISSUANCE_FEE
 
 DATE = datetime(2020, 10, 20, 16, 15, 55)
 
@@ -214,6 +215,20 @@ class TradeItemBuilderTest(unittest.TestCase):
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
         self.assertEqual(item.comment, "Tax source comment")
+
+    def test_build_issuance_fee(self) -> None:
+        # given
+        row = ReportRow(1, "ACCOUNT.001", "GSK.NYSE", ISSUANCE_FEE, DATE, Decimal("-15"), "USD", Decimal("-12"), "Issuance fee comment")
+
+        # when
+        item = TradeItemBuilder().add(row).build()
+
+        # then
+        self.assertIsInstance(item, IssuanceFeeItem)
+        self.assertEqual(item.paid_fee, Money("15", "USD"))
+        self.assertEqual(item.date, DATE)
+        self.assertEqual(item.transaction_id, 1)
+        self.assertEqual(item.comment, "Issuance fee comment")
 
     def test_build_corporate_action(self) -> None:
         # given

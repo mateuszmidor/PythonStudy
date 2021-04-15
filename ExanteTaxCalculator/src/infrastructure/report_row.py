@@ -22,6 +22,7 @@ class ReportRow:
         DIVIDEND = "DIVIDEND"
         TAX = "TAX"
         CORPORATE_ACTION = "CORPORATE ACTION"
+        ISSUANCE_FEE = "ISSUANSE FEE"  # ISSUANSE seems to be a typo in exante report
 
     transaction_id: int
     account_id: str

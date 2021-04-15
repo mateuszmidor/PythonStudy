@@ -51,9 +51,7 @@ class QuotesProviderStub:
 class TraderTest(unittest.TestCase):
     def test_empty_input_empty_output(self) -> None:
         # given
-        csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"'
-        ]
+        csv_report_lines = ['"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"']
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
@@ -260,9 +258,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.shares_total_tax, PLN(0))  # no profit = no tax to pay
         self.assertEqual(trader.report.results.dividends_total_income, PLN(0))
         self.assertEqual(trader.report.results.dividends_total_tax, PLN(0))
-        self.assertEqual(
-            trader.report.results.dividends_tax_already_paid, USD_TO_PLN(15)
-        )  # but they deducted some tax anyway... life.
+        self.assertEqual(trader.report.results.dividends_tax_already_paid, USD_TO_PLN(15))  # but they deducted some tax anyway... life.
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
@@ -271,6 +267,34 @@ class TraderTest(unittest.TestCase):
         assert isinstance(tax, TaxItemPLN)
         self.assertEqual(tax.paid_tax_pln, USD_TO_PLN(15).amount)
         self.assertEqual(tax.tax_pln_quotation_date, datetime.date(2020, 10, 20))
+
+    def test_fund_issuance_fee_success(self) -> None:
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            # issuance fee 15 USD
+            '"2000"	"TBA0174.001"	"TLT.NASDAQ"	"ISSUANSE FEE"	"2020-10-21 20:40:55"	"-15.0"	"USD"	"-12.0"	"Issuance fee"',
+            # add 1000 USD
+            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"1000.0"	"USD"	"1000.0"	"None"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines, 2020)
+
+        # then
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("985"))  # 1000 minus issuance fee
+        self.assertEqual(trader.report.results.shares_total_income, PLN(0))  # no profit at all
+        self.assertEqual(trader.report.results.shares_total_cost, PLN(0))
+        self.assertEqual(trader.report.results.shares_total_tax, PLN(0))  # no profit = no tax to pay
+        self.assertEqual(trader.report.results.dividends_total_income, PLN(0))
+        self.assertEqual(trader.report.results.dividends_total_tax, PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
+        self.assertEqual(trader.report.trades_by_asset, {})
+        self.assertEqual(trader.report.dividends, [])
+        self.assertEqual(trader.report.taxes, [])
 
     def test_fund_exchange_buy_success(self) -> None:
         # given
@@ -657,6 +681,7 @@ class TraderTest(unittest.TestCase):
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"97505780"	"TBA0174.001"	"GSK.NYSE"	"ISSUANSE FEE"	"2021-04-14 08:44:35"	"-15.0"	"USD"	"-12.0"	"Issuance Fee"',
             '"79327161"	"TBA0174.001"	"OGZD.LSEIOB"	"TRADE"	"2020-12-22 09:05:44"	"-125"	"OGZD.LSEIOB"	"-559.66"	"None"',
             '"79327162"	"TBA0174.001"	"OGZD.LSEIOB"	"TRADE"	"2020-12-22 09:05:44"	"684.0"	"USD"	"559.66"	"None"',
             '"79327163"	"TBA0174.001"	"OGZD.LSEIOB"	"COMMISSION"	"2020-12-22 09:05:44"	"-0.35"	"USD"	"-0.29"	"None"',

@@ -73,6 +73,16 @@ class Wallet:
         # apply transaction
         self._assets[item.paid_tax.currency] -= item.paid_tax.amount
 
+    def issuance_fee(self, item: IssuanceFeeItem) -> None:
+        # check transaction possible
+        if item.paid_fee.currency not in self._assets:
+            raise InsufficientAssetError(f"Tried to pay issuance fee {item.paid_fee}, but no such currency in the wallet")
+        if item.paid_fee.amount > self._assets[item.paid_fee.currency]:
+            raise InsufficientAssetError(f"Tried to pay issuance fee {item.paid_fee}, but only has {self._assets[item.paid_fee.currency]}")
+
+        # apply transaction
+        self._assets[item.paid_fee.currency] -= item.paid_fee.amount
+
     def corporate_action(self, item: CorporateActionItem) -> None:
         # check transaction possible
         if item.from_share.symbol not in self._assets:

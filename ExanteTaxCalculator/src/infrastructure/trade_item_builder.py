@@ -35,6 +35,8 @@ class TradeItemBuilder:
             result = self._build_dividend_item()
         elif is_tax(dec):
             result = self._build_tax_item()
+        elif is_issuance_fee(dec):
+            result = self._build_issuance_fee_item()
         elif is_autoconversion(inc, dec):
             result = self._build_autoconversion_item()
         elif is_funding(inc, dec):
@@ -174,6 +176,13 @@ class TradeItemBuilder:
         assert transaction_id is not None
         return TaxItem(paid_tax=-Money(dec.sum, dec.asset), date=dec.when, transaction_id=transaction_id, comment=dec.comment)
 
+    def _build_issuance_fee_item(self) -> IssuanceFeeItem:
+        dec = self._item.decrease
+        transaction_id = self._item.transaction_id
+        assert dec is not None
+        assert transaction_id is not None
+        return IssuanceFeeItem(paid_fee=-Money(dec.sum, dec.asset), date=dec.when, transaction_id=transaction_id, comment=dec.comment)
+
     def _build_autoconversion_item(self) -> AutoConversionItem:
         commission = self._item.commission
         if commission is not None:
@@ -232,6 +241,10 @@ def is_dividend(row: Optional[ReportRow]) -> bool:
 
 def is_tax(row: Optional[ReportRow]) -> bool:
     return row is not None and row.operation_type == ReportRow.OperationType.TAX
+
+
+def is_issuance_fee(row: Optional[ReportRow]) -> bool:
+    return row is not None and row.operation_type == ReportRow.OperationType.ISSUANCE_FEE
 
 
 def is_corporate_action(row1, row2: Optional[ReportRow]) -> bool:

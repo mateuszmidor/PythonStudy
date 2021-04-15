@@ -54,16 +54,14 @@ class Trader:
                 self._wallet.tax(item)
                 if item.date.year == year:
                     paid_taxes.append(item)
+            elif isinstance(item, IssuanceFeeItem):
+                self._wallet.issuance_fee(item)
             elif isinstance(item, CorporateActionItem):
                 self._wallet.corporate_action(item)
             elif isinstance(item, WithdrawalItem):
                 self._wallet.withdraw(item)
-            elif isinstance(
-                item, AutoConversionItem
-            ):  # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
-                raise TypeError(
-                    f"Autoconversion is not expected to be a standalone transaction but so it happened: {type(item)}"
-                )
+            elif isinstance(item, AutoConversionItem):  # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
+                raise TypeError(f"Autoconversion is not expected to be a standalone transaction but so it happened: {type(item)}")
             else:
                 raise TypeError(f"Not implemented transaction type: {type(item)}")
 
@@ -78,9 +76,7 @@ class Trader:
         # paid taxes in PLN
         tax_quotator = TaxItemPLNQuotator(self._quotes_provider)
         tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]  # collect standalone taxes
-        tax_items_pln += [
-            item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None
-        ]  # add taxes reported with dividends
+        tax_items_pln += [item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None]  # add taxes reported with dividends
         tax_amounts = [item.paid_tax_pln for item in tax_items_pln]
 
         results = self._tax_calculator.calc_tax_declaration_numbers(
@@ -94,9 +90,7 @@ class Trader:
             results=results,
         )
 
-    def _get_buys_sells(
-        self, buy_sell_pairs: List[BuySellPair]
-    ) -> Tuple[List[ProfitItem], List[Decimal], List[Decimal]]:
+    def _get_buys_sells(self, buy_sell_pairs: List[BuySellPair]) -> Tuple[List[ProfitItem], List[Decimal], List[Decimal]]:
         buy_sell_item_quotator = BuySellPairPLNQuotator(self._quotes_provider)
         buy_sell_pairs_pln = [buy_sell_item_quotator.quote(item) for item in buy_sell_pairs]
         money_flow_calculator = BuySellMoneyFlowCalculator()

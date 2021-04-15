@@ -98,6 +98,18 @@ class WalletTest(unittest.TestCase):
         self.assertTrue("USD" in wallet.assets)
         self.assertEqual(wallet.assets["USD"], Decimal("85"))
 
+    def test_issuance_fee(self) -> None:
+        # given
+        item = IssuanceFeeItem(paid_fee=Money("15", "USD"), date=datetime(2020, 10, 20), transaction_id=1)
+        wallet = make_wallet({"USD": "100"})
+
+        # when
+        wallet.issuance_fee(item)
+
+        # then
+        self.assertTrue("USD" in wallet.assets)
+        self.assertEqual(wallet.assets["USD"], Decimal("85"))
+
     def test_tax_non_owned_currency_raises_error(self) -> None:
         # given
         item = TaxItem(paid_tax=Money("15", "USD"), date=datetime(2020, 10, 20), transaction_id=1)

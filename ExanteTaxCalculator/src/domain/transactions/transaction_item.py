@@ -11,5 +11,6 @@ TransactionItem = Union[
     AutoConversionItem,
     DividendItem,
     TaxItem,
+    IssuanceFeeItem,
     CorporateActionItem,
 ]
