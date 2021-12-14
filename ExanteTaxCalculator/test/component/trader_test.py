@@ -39,7 +39,7 @@ def to_pln(currency: str, amount: Union[int, Decimal]) -> Money:
 
 class QuotesProviderStub:
     def get_average_pln_for_day(self, currency: Currency, date: datetime.date) -> Optional[Decimal]:
-        """ Laziness manifestation; always return 1USD = 3PLN, 1SGD = 2PLN """
+        """Laziness manifestation; always return 1USD = 3PLN, 1SGD = 2PLN"""
         if currency == Currency("USD"):
             return Decimal("3")
         if currency == Currency("SGD"):
@@ -132,6 +132,39 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.dividends, [])
         self.assertEqual(trader.report.taxes, [])
 
+    def test_dividend_together_with_issuance_fee_success(self) -> None:
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"ISIN"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            # receive dividend
+            '"1001"	"TBA0174.001"	"GSK.NYSE"	"None"	"DIVIDEND"	"2021-10-19 15:12:48"	"100"	"USD"	"6.22"	"14.0 shares 2021-08-19 dividend GSK.NYSE 7.24 USD (0.5175125 per share) dividend fee amount 0.11 USD (0.0075 per share)"	"f6760f1a-a3cc-4f45-b601-89f9dcfe77a9"	"None"',
+            # pay fee
+            '"1002"	"TBA0174.001"	"GSK.NYSE"	"None"	"ISSUANCE FEE"	"2021-10-19 15:12:48"	"-15"	"USD"	"-0.09"	"None"	"d7737eff-a58b-4fa2-a81d-c56facbf7c53"	"f6760f1a-a3cc-4f45-b601-89f9dcfe77a9"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines, 2021)
+
+        # then
+        self.assertEqual(trader.owned_asssets["USD"], Decimal("85"))  # dividend minus issuance fee
+        self.assertEqual(trader.report.results.shares_total_income, PLN(0))
+        self.assertEqual(trader.report.results.shares_total_cost, PLN(0))
+        self.assertEqual(trader.report.results.shares_total_tax, PLN(0))
+        self.assertEqual(trader.report.results.dividends_total_income, USD_TO_PLN(100))
+        self.assertEqual(trader.report.results.dividends_total_tax, USD_TO_PLN(calc_tax(100)))
+        self.assertEqual(trader.report.results.dividends_tax_already_paid, USD_TO_PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, USD_TO_PLN(calc_tax(100)))
+        self.assertEqual(trader.report.trades_by_asset, {})
+
+        self.assertEqual(len(trader.report.dividends), 1)
+        dividend = trader.report.dividends[0]
+        self.assertIsInstance(dividend, DividendItemPLN)
+        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(dividend.received_dividend_pln, USD_TO_PLN(100).amount)
+        self.assertEqual(dividend.dividend_pln_quotation_date, datetime.date(2021, 10, 18))
+
     def test_dividend_without_tax_success(self) -> None:
         # given
         csv_report_lines = [
@@ -157,13 +190,14 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.taxes, [])
         item = trader.report.dividends[0]
-        assert isinstance(item, DividendItemPLN)
+        self.assertIsInstance(item, DividendItemPLN)
         self.assertEqual(item.received_dividend_pln, Decimal(300))
         self.assertEqual(item.dividend_pln_quotation_date, datetime.date(2020, 6, 23))
         self.assertIsNone(item.paid_tax_pln)
+        self.assertIsNone(item.paid_tax_pln)
 
     def test_dividend_together_with_tax_success(self) -> None:
-        """ Here dividend item contains tax """
+        """Here dividend item contains tax"""
 
         # given
         csv_report_lines = [
@@ -200,7 +234,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(tax.tax_pln_quotation_date, datetime.date(2020, 10, 19))
 
     def test_dividend_separate_from_tax_success(self) -> None:
-        """ Here dividend is separate item from tax item """
+        """Here dividend is separate item from tax item"""
 
         # given
         csv_report_lines = [
@@ -273,7 +307,7 @@ class TraderTest(unittest.TestCase):
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
             # issuance fee 15 USD
-            '"2000"	"TBA0174.001"	"TLT.NASDAQ"	"ISSUANSE FEE"	"2020-10-21 20:40:55"	"-15.0"	"USD"	"-12.0"	"Issuance fee"',
+            '"2000"	"TBA0174.001"	"TLT.NASDAQ"	"ISSUANCE FEE"	"2020-10-21 20:40:55"	"-15.0"	"USD"	"-12.0"	"Issuance fee"',
             # add 1000 USD
             '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-20 20:40:55"	"1000.0"	"USD"	"1000.0"	"None"',
         ]
@@ -581,6 +615,49 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.dividends, [])
         self.assertEqual(trader.report.taxes, [])
 
+    def test_fund_buy_stock_split_sell_success(self) -> None:
+        # given
+        csv_report_lines = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            # sell 200 2768.TSE (all of them)
+            '"4001"	"TBA9999.001"	"2768.TSE"	"TRADE"	"2021-09-30 06:56:01"	"101"	"USD"	"0"	"None"',
+            '"4002"	"TBA9999.001"	"2768.TSE"	"TRADE"	"2021-09-30 06:56:01"	"-200"	"2768.TSE"	"0"	"None"',
+            '"4003"	"TBA9999.001"	"2768.TSE"	"COMMISSION"	"2021-09-30 06:56:01"	"-1.0"	"USD"	"0"	"None"',
+            # stock split 100 2768.TSE -> 200 2768.TSE
+            '"3001"	"TBA9999.001"	"2768.TSE"	"STOCK SPLIT"	"2021-09-29 06:56:01"	"200"	"2768.TSE"	"241"	"2768.TSE split 2 for 1"',
+            '"3002"	"TBA9999.001"	"2768.TSE"	"STOCK SPLIT"	"2021-09-29 06:56:01"	"-100"	"2768.TSE"	"-241"	"2768.TSE split 2 for 1"',
+            # buy 100 2768.TSE
+            '"2001"	"TBA9999.001"	"2768.TSE"	"TRADE"	"2021-09-28 06:56:01"	"100"	"2768.TSE"	"0"	"None"',
+            '"2002"	"TBA9999.001"	"2768.TSE"	"TRADE"	"2021-09-28 06:56:01"	"-99.0"	"USD"	"0"	"None"',
+            '"2003"	"TBA9999.001"	"2768.TSE"	"COMMISSION"	"2021-09-28 06:56:01"	"-1.0"	"USD"	"0"	"None"',
+            # add 100 USD
+            '"1000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2021-09-27 06:56:01"	"100"	"USD"	"0"	"None"',
+        ]
+        quotes_provider_stub = QuotesProviderStub()
+        trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
+
+        # when
+        trader.trade_items(csv_report_lines, 2021)
+
+        # then
+        self.assertEqual(trader.owned_asssets["2768.TSE"], Decimal("0"))  # after buy 100 and split to 200, all 200 sold
+        self.assertEqual(trader.owned_asssets["USD"], Decimal(101 - 1))  # 101 from selling minus 1 commission
+        self.assertEqual(trader.report.results.shares_total_income, USD_TO_PLN(101 - 1))
+        self.assertEqual(trader.report.results.shares_total_cost, USD_TO_PLN(100))
+        self.assertEqual(trader.report.results.shares_total_tax, USD_TO_PLN(calc_tax(0)))  # income-cost; no profit this time
+        self.assertEqual(trader.report.results.dividends_total_income, PLN(0))
+        self.assertEqual(trader.report.results.dividends_total_tax, PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
+        self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
+
+        profit = trader.report.trades_by_asset["2768.TSE"][0]
+        assert isinstance(profit, ProfitPLN)
+        self.assertEqual(profit.paid, USD_TO_PLN(100))
+        self.assertEqual(profit.received, USD_TO_PLN(101 - 1))
+
+        self.assertEqual(trader.report.dividends, [])
+        self.assertEqual(trader.report.taxes, [])
+
     def test_two_years_report_calc_for_first_year(self) -> None:
         # given
         csv_report_lines = [
@@ -681,7 +758,7 @@ class TraderTest(unittest.TestCase):
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            '"97505780"	"TBA0174.001"	"GSK.NYSE"	"ISSUANSE FEE"	"2021-04-14 08:44:35"	"-15.0"	"USD"	"-12.0"	"Issuance Fee"',
+            '"97505780"	"TBA0174.001"	"GSK.NYSE"	"ISSUANCE FEE"	"2021-04-14 08:44:35"	"-15.0"	"USD"	"-12.0"	"Issuance Fee"',
             '"79327161"	"TBA0174.001"	"OGZD.LSEIOB"	"TRADE"	"2020-12-22 09:05:44"	"-125"	"OGZD.LSEIOB"	"-559.66"	"None"',
             '"79327162"	"TBA0174.001"	"OGZD.LSEIOB"	"TRADE"	"2020-12-22 09:05:44"	"684.0"	"USD"	"559.66"	"None"',
             '"79327163"	"TBA0174.001"	"OGZD.LSEIOB"	"COMMISSION"	"2020-12-22 09:05:44"	"-0.35"	"USD"	"-0.29"	"None"',

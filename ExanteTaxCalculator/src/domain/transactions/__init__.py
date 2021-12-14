@@ -8,4 +8,5 @@ from .tax_item import TaxItem
 from .issuance_fee_item import IssuanceFeeItem
 from .withdrawal_item import WithdrawalItem
 from .corporate_action_item import CorporateActionItem
+from .stock_split_item import StockSplitItem
 from .transaction_item import TransactionItem

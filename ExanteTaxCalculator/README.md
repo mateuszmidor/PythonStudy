@@ -147,6 +147,7 @@ Operations listed in report:
   - "TAX"
   - "CORPORATE ACTION"
   - "ISSUANSE FEE" - related to dividend (any other relations?)
+  - "STOCK SPLIT"
 
 Glossary:
 - money - currency with 3 characters symbol like USD, CAD, EUR

@@ -1,4 +1,5 @@
 from datetime import datetime
+from src.domain.transactions.issuance_fee_item import IssuanceFeeItem
 from money import Money
 from decimal import Decimal
 from dataclasses import dataclass, field
@@ -13,11 +14,13 @@ class DividendItem:
     """
     Dividend usually is followed by Tax, but sometimes tax comes much later.
     In that case paid_tax.amount == 0
+    Dividend can also come with IssuanceFee
     Dividend can also entail autoconversions eg from SGD to USD
     """
 
     received_dividend: Money
     paid_tax: Optional[TaxItem] = None
+    paid_issuance_fee: Optional[IssuanceFeeItem] = None
     autoconversions: List[AutoConversionItem] = field(default_factory=list)
     # common transaction item data
     date: datetime = datetime(1970, 1, 1)

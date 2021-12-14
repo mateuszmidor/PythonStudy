@@ -58,6 +58,10 @@ class Trader:
                 self._wallet.issuance_fee(item)
             elif isinstance(item, CorporateActionItem):
                 self._wallet.corporate_action(item)
+                matcher.corporate_action(item)
+            elif isinstance(item, StockSplitItem):
+                self._wallet.stock_split(item)
+                matcher.stock_split(item)
             elif isinstance(item, WithdrawalItem):
                 self._wallet.withdraw(item)
             elif isinstance(item, AutoConversionItem):  # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
@@ -101,7 +105,7 @@ class Trader:
 
     @property
     def owned_asssets(self) -> Dict[str, Decimal]:
-        return self._wallet.assets
+        return self._wallet.assets_copy
 
     @property
     def report(self) -> TradingReport:

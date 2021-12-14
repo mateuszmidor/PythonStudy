@@ -7,16 +7,14 @@ When the ID drops, it means a new transaction begins, eg. for series of separate
 1001 DIVIDEND  2001-12-20 15:10:45
 501  DIVIDEND  2001-12-07 15:10:45
 203  DIVIDEND  2001-12-02 15:10:45
+
+After parsing all rows, the items are sorted ascending 1. by date 2. by transaction id, so funding is first item
 """
 
 import csv
-import datetime
 from typing import List, Iterable, Sequence, Optional
-from decimal import Decimal
-from money import Money
 from copy import deepcopy
 from src.domain.transactions import *
-from src.domain.currency import Currency
 from src.infrastructure.report_row import ReportRow
 from src.infrastructure.trade_item_builder import TradeItemBuilder
 from src.infrastructure.errors import CorruptedReportError
@@ -80,7 +78,7 @@ class TradesRepoCSV:
 
     @property
     def items(self) -> List[TransactionItem]:
-        """ Items are sorted by date, ascending """
+        """Items are sorted by date, ascending"""
 
         return deepcopy(self._items)
 

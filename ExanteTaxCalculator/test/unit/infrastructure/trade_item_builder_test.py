@@ -18,6 +18,7 @@ DIVIDEND = ReportRow.OperationType.DIVIDEND
 TAX = ReportRow.OperationType.TAX
 CORPORATE_ACTION = ReportRow.OperationType.CORPORATE_ACTION
 ISSUANCE_FEE = ReportRow.OperationType.ISSUANCE_FEE
+STOCK_SPLIT = ReportRow.OperationType.STOCK_SPLIT
 
 DATE = datetime(2020, 10, 20, 16, 15, 55)
 
@@ -177,10 +178,29 @@ class TradeItemBuilderTest(unittest.TestCase):
         # then
         self.assertIsInstance(item, DividendItem)
         self.assertEqual(item.received_dividend, Money("100", "USD"))
-        assert item.paid_tax is not None
+        self.assertIsNotNone(item.paid_tax)
         self.assertEqual(item.paid_tax.paid_tax, Money("15", "USD"))
         self.assertEqual(item.paid_tax.date, DATE)
         self.assertEqual(item.paid_tax.comment, "Tax")
+        self.assertEqual(item.date, DATE)
+        self.assertEqual(item.transaction_id, 1)
+
+    def test_build_dividend_with_issuance_fee(self) -> None:
+        # given
+        row1 = ReportRow(1, "ACCOUNT.001", "IEF.NASDAQ", DIVIDEND, DATE, Decimal("100"), "USD", Decimal("75"), "Dividend")
+        row2 = ReportRow(2, "ACCOUNT.001", "IEF.NASDAQ", ISSUANCE_FEE, DATE, Decimal("-15"), "USD", Decimal("-12"), "Issuance Fee")
+
+        # when
+        item = TradeItemBuilder().add(row1).add(row2).build()
+
+        # then
+        self.assertIsInstance(item, DividendItem)
+        self.assertEqual(item.received_dividend, Money("100", "USD"))
+        self.assertIsNone(item.paid_tax)
+        self.assertIsNotNone(item.paid_issuance_fee)
+        self.assertEqual(item.paid_issuance_fee.paid_fee, Money("15", "USD"))
+        self.assertEqual(item.paid_issuance_fee.date, DATE)
+        self.assertEqual(item.paid_issuance_fee.comment, "Issuance Fee")
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
 
@@ -233,7 +253,7 @@ class TradeItemBuilderTest(unittest.TestCase):
     def test_build_corporate_action(self) -> None:
         # given
         row1 = ReportRow(1, "ACCOUNT.001", "TLT.NASDAQ", CORPORATE_ACTION, DATE, Decimal("-15"), "TLT.NASDAQ", Decimal("-12"), "crop action")
-        row2 = ReportRow(1, "ACCOUNT.001", "TLT.NASDAQ", CORPORATE_ACTION, DATE, Decimal("15"), "TLT.NYSE", Decimal("-12"), "crop action")
+        row2 = ReportRow(2, "ACCOUNT.001", "TLT.NASDAQ", CORPORATE_ACTION, DATE, Decimal("15"), "TLT.NYSE", Decimal("12"), "crop action")
 
         # when
         item = TradeItemBuilder().add(row1).add(row2).build()
@@ -242,6 +262,21 @@ class TradeItemBuilderTest(unittest.TestCase):
         self.assertIsInstance(item, CorporateActionItem)
         self.assertEqual(item.from_share, Share(Decimal("15"), "TLT.NASDAQ"))
         self.assertEqual(item.to_share, Share(Decimal("15"), "TLT.NYSE"))
+        self.assertEqual(item.date, DATE)
+        self.assertEqual(item.transaction_id, 1)
+
+    def test_build_stock_split(self) -> None:
+        # given
+        row1 = ReportRow(1, "ACCOUNT.001", "2768.TSE", STOCK_SPLIT, DATE, Decimal("20"), "2768.TSE", Decimal("241"), "stock split")
+        row2 = ReportRow(2, "ACCOUNT.001", "2768.TSE", STOCK_SPLIT, DATE, Decimal("-100"), "2768.TSE", Decimal("-241"), "stock split")
+
+        # when
+        item = TradeItemBuilder().add(row1).add(row2).build()
+
+        # then
+        self.assertIsInstance(item, StockSplitItem)
+        self.assertEqual(item.from_share, Share(Decimal("100"), "2768.TSE"))
+        self.assertEqual(item.to_share, Share(Decimal("20"), "2768.TSE"))
         self.assertEqual(item.date, DATE)
         self.assertEqual(item.transaction_id, 1)
 

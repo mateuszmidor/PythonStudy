@@ -21,14 +21,14 @@ class TaxDeclarationNumbers:
     shares_total_income: Money = PLN(0)
     """
     TAX language: Przychód
-    This is the total shares income: money received from all the sold shares, reduced by buy and sell commissions.
+    This is the total shares income: money received from all the sold shares, reduced by sell commissions.
     Always >= 0 PLN
     """
 
     shares_total_cost: Money = PLN(0)
     """
     TAX language: Koszt uzyskania przychodu
-    This is the total cost: money paid for bought shares.
+    This is the total cost: money paid for bought shares, commission doesnt count here
     Always >= 0 PLN
     """
 

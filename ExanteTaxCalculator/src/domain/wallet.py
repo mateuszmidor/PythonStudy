@@ -8,7 +8,7 @@ from src.domain.errors import InsufficientAssetError
 
 
 class Wallet:
-    """ Wallet keeps track of assets, it is updated by buy/sell/fund/withdraw/exchange/tax/dividend/corporateaction operations """
+    """Wallet keeps track of assets, it is updated by buy/sell/fund/withdraw/exchange/tax/dividend/corporate_action/issuance_fee/stock_split operations"""
 
     def __init__(self, initial_assets: Mapping[str, Decimal] = {}):
         self._assets = defaultdict(Decimal, initial_assets)
@@ -43,12 +43,16 @@ class Wallet:
 
     @staticmethod
     def _autoconversion(item: AutoConversionItem, assets: Dict[str, Decimal]) -> None:
-        """ autoconversion if effectively the same as exchange """
+        """autoconversion if effectively the same as exchange"""
         # check transaction possible
         if item.conversion_from.currency not in assets:
-            raise InsufficientAssetError(f"Tried to autoconvert {item.conversion_from}, but no such asset in the wallet: {assets}")
+            raise InsufficientAssetError(
+                f"Tried to autoconvert {item.conversion_from}, but no such asset in the wallet: {assets}, id: {item.transaction_id}"
+            )
         if item.conversion_from.amount > assets[item.conversion_from.currency]:
-            raise InsufficientAssetError(f"Tried to autoconvert {item.conversion_from}, but only has {assets[item.conversion_from.currency]}")
+            raise InsufficientAssetError(
+                f"Tried to autoconvert {item.conversion_from}, but only has {assets[item.conversion_from.currency]}, id: {item.transaction_id}"
+            )
 
         # apply transaction
         assets[item.conversion_from.currency] -= item.conversion_from.amount
@@ -56,12 +60,18 @@ class Wallet:
 
     def dividend(self, item: DividendItem) -> None:
         self._assets[item.received_dividend.currency] += item.received_dividend.amount
-        if item.paid_tax is not None:
-            self._assets[item.paid_tax.paid_tax.currency] -= item.paid_tax.paid_tax.amount
 
         # first receive money, then autoconvert if needed. Eg. happens for Singapor dollars SGD -> USD
         for autoconversion in item.autoconversions:
             Wallet._autoconversion(autoconversion, self._assets)
+
+        # issuance fee is always less than received dividend so no need to check for sufficient money
+        if item.paid_issuance_fee is not None:
+            self._assets[item.paid_issuance_fee.paid_fee.currency] -= item.paid_issuance_fee.paid_fee.amount
+
+        # tax is always less than received dividend so no need to check for sufficient money
+        if item.paid_tax is not None:  # @@@ should pay the tax after autoconversions?
+            self._assets[item.paid_tax.paid_tax.currency] -= item.paid_tax.paid_tax.amount
 
     def tax(self, item: TaxItem) -> None:
         # check transaction possible
@@ -94,9 +104,20 @@ class Wallet:
         self._assets[item.from_share.symbol] -= item.from_share.amount
         self._assets[item.to_share.symbol] += item.to_share.amount
 
+    def stock_split(self, item: StockSplitItem) -> None:
+        # check transaction possible
+        if item.from_share.symbol not in self._assets:
+            raise InsufficientAssetError(f"Tried to stock split from {item.from_share}, but no such share in the wallet")
+        if item.from_share.amount > self._assets[item.from_share.symbol]:
+            raise InsufficientAssetError(f"Tried to stock split from {item.from_share}, but only has {self._assets[item.from_share.symbol]}")
+
+        # apply transaction
+        self._assets[item.from_share.symbol] -= item.from_share.amount
+        self._assets[item.to_share.symbol] += item.to_share.amount
+
     def buy(self, item: BuyItem) -> None:
         # check transaction possible
-        assets = self.assets
+        assets = self.assets_copy
 
         # 1. first autoconvert money if needed
         for autoconversion in item.autoconversions:
@@ -119,7 +140,7 @@ class Wallet:
         # check transaction possible
 
         # 1. First deduct asset and add money
-        assets = self.assets
+        assets = self.assets_copy
         assets[item.asset_name] -= item.amount
         assets[item.received.currency] += item.received.amount
 
@@ -140,5 +161,5 @@ class Wallet:
         self._assets[item.commission.currency] -= item.commission.amount
 
     @property
-    def assets(self) -> Dict[str, Decimal]:
+    def assets_copy(self) -> Dict[str, Decimal]:
         return copy.deepcopy(self._assets)

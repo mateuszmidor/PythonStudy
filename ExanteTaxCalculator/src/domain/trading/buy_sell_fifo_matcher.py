@@ -82,6 +82,8 @@ Scenario6:
 """
 
 import copy
+from src.domain.transactions.stock_split_item import StockSplitItem
+from src.domain.transactions.corporate_action_item import CorporateActionItem
 from typing import List
 from decimal import Decimal
 from src.domain.transactions.buy_item import BuyItem
@@ -105,6 +107,37 @@ class OwnedItem:
         amount_sold = min(amount, self.asset_left)
         self.asset_left -= amount_sold
         return amount_sold
+
+    def rename(self, new_name: str) -> None:
+        """to support CORPORATE ACTION"""
+        old = self._item
+        self._item = BuyItem(
+            asset_name=new_name,
+            amount=old.amount,
+            paid=old.paid,
+            commission=old.commission,
+            autoconversions=old.autoconversions,
+            date=old.date,
+            transaction_id=old.transaction_id,
+        )
+
+    def split(self, ratio: Decimal) -> None:
+        """to support STOCK SPLIT, can be actual split eg. 100 -> 200 or merge eg. 200 -> 100"""
+        new_asset_left = self.asset_left * ratio
+        if new_asset_left != int(new_asset_left):  # fractional amount not allowed
+            raise Exception(f"After stock split the amount left is fractional: {new_asset_left}")
+
+        old = self._item
+        self._item = BuyItem(
+            asset_name=old.asset_name,
+            amount=old.amount * ratio,
+            paid=old.paid,
+            commission=old.commission,
+            autoconversions=old.autoconversions,
+            date=old.date,
+            transaction_id=old.transaction_id,
+        )
+        self.asset_left = Decimal(int(new_asset_left))
 
     @property
     def asset_name(self) -> str:
@@ -142,6 +175,26 @@ class BuySellFIFOMatcher:
                 self._buy_sell_matches.append(buy_sell_pair)
             i += 1
 
+    def corporate_action(self, item: CorporateActionItem) -> None:
+        for i in range(len(self._owned_items)):
+            if self._owned_items[i].asset_name == item.from_share.symbol:
+                print("renaming", item.from_share.symbol, " -> ", item.to_share.symbol)
+                self._owned_items[i].rename(item.to_share.symbol)
+
+        # below is just historical transaction data; don't update historical names
+        # for i in range(len(self._buy_sell_matches)):
+        #     if self._buy_sell_matches[i].buy.asset_name == item.from_share.symbol:
+        #         self._buy_sell_matches[i].buy.asset_name = item.to_share.symbol
+        #     if self._buy_sell_matches[i].sell.asset_name == item.from_share.symbol:
+        #         self._buy_sell_matches[i].sell.asset_name = item.to_share.symbol
+
+    def stock_split(self, item: StockSplitItem) -> None:
+        ratio = item.to_share.amount / item.from_share.amount
+        for i in range(len(self._owned_items)):
+            if self._owned_items[i].asset_name == item.from_share.symbol:
+                print("splitting", item.from_share.symbol, " x ", ratio)
+                self._owned_items[i].split(ratio)
+
     @property
     def buy_sell_pairs(self) -> List[BuySellPair]:
         return copy.deepcopy(self._buy_sell_matches)
@@ -150,7 +203,7 @@ class BuySellFIFOMatcher:
         amount_available = self._get_asset_amount_in_wallet(item.asset_name)
         if item.amount > amount_available:
             raise InsufficientAssetError(
-                f"Trying to sell more asset than available: want {item.amount}, available {amount_available} {item.asset_name}"
+                f"Trying to sell more asset than available: want {item.amount}, available {amount_available} {item.asset_name}, id: {item.transaction_id}"
             )
 
     def _get_asset_amount_in_wallet(self, asset: str) -> Decimal:

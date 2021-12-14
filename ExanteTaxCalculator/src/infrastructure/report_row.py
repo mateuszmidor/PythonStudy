@@ -9,10 +9,10 @@ from src.infrastructure.errors import InvalidReportRowError
 
 @dataclass
 class ReportRow:
-    """ ReportRow is raw CSV report row parsed into a dataclass. """
+    """ReportRow is raw CSV report row parsed into a dataclass."""
 
     class OperationType(Enum):
-        """ Names reflect Exante Transaction Report 'Operation type' column """
+        """Names reflect Exante Transaction Report 'Operation type' column"""
 
         UNKNOWN = "UNKNOWN"
         TRADE = "TRADE"
@@ -22,7 +22,8 @@ class ReportRow:
         DIVIDEND = "DIVIDEND"
         TAX = "TAX"
         CORPORATE_ACTION = "CORPORATE ACTION"
-        ISSUANCE_FEE = "ISSUANSE FEE"  # ISSUANSE seems to be a typo in exante report
+        ISSUANCE_FEE = "ISSUANCE FEE"
+        STOCK_SPLIT = "STOCK SPLIT"
 
     transaction_id: int
     account_id: str

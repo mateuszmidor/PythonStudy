@@ -28,8 +28,8 @@ class WalletTest(unittest.TestCase):
         wallet.fund(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("100"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("100"))
 
     def test_withdraw(self) -> None:
         # given
@@ -40,8 +40,8 @@ class WalletTest(unittest.TestCase):
         wallet.withdraw(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("50"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("50"))
 
     def test_exchange(self) -> None:
         # given
@@ -52,10 +52,10 @@ class WalletTest(unittest.TestCase):
         wallet.exchange(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("50"))
-        self.assertTrue("EUR" in wallet.assets)
-        self.assertEqual(wallet.assets["EUR"], Decimal("40"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("50"))
+        self.assertTrue("EUR" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["EUR"], Decimal("40"))
 
     def test_dividend_without_tax(self) -> None:
         # given
@@ -66,8 +66,8 @@ class WalletTest(unittest.TestCase):
         wallet.dividend(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("100"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("100"))
 
     def test_dividend_with_tax(self) -> None:
         # given
@@ -83,8 +83,8 @@ class WalletTest(unittest.TestCase):
         wallet.dividend(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("85"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("85"))
 
     def test_tax(self) -> None:
         # given
@@ -95,8 +95,8 @@ class WalletTest(unittest.TestCase):
         wallet.tax(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("85"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("85"))
 
     def test_issuance_fee(self) -> None:
         # given
@@ -107,8 +107,8 @@ class WalletTest(unittest.TestCase):
         wallet.issuance_fee(item)
 
         # then
-        self.assertTrue("USD" in wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("85"))
+        self.assertTrue("USD" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("85"))
 
     def test_tax_non_owned_currency_raises_error(self) -> None:
         # given
@@ -143,9 +143,9 @@ class WalletTest(unittest.TestCase):
         wallet.corporate_action(item)
 
         # then
-        self.assertTrue("PHYS.NYSE" in wallet.assets)
-        self.assertEqual(wallet.assets["PHYS.NYSE"], Decimal("20"))
-        self.assertEqual(wallet.assets["PHYS.ARCA"], Decimal("0"))
+        self.assertTrue("PHYS.NYSE" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["PHYS.NYSE"], Decimal("20"))
+        self.assertEqual(wallet.assets_copy["PHYS.ARCA"], Decimal("0"))
 
     def test_corporate_action_non_owned_share_raises_error(self) -> None:
         # given
@@ -273,10 +273,10 @@ class WalletTest(unittest.TestCase):
         wallet.buy(item)
 
         # then
-        self.assertTrue("PHYS", wallet.assets)
-        self.assertEqual(wallet.assets["PHYS"], Decimal("100"))
-        self.assertTrue("USD", wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("3"))
+        self.assertTrue("PHYS", wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["PHYS"], Decimal("100"))
+        self.assertTrue("USD", wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("3"))
 
     def test_buy_insufficient_money_raises_error(self) -> None:
         # given
@@ -305,10 +305,10 @@ class WalletTest(unittest.TestCase):
         wallet.sell(item)
 
         # then
-        self.assertTrue("PHYS", wallet.assets)
-        self.assertEqual(wallet.assets["PHYS"], Decimal("50"))
-        self.assertTrue("USD", wallet.assets)
-        self.assertEqual(wallet.assets["USD"], Decimal("998"))
+        self.assertTrue("PHYS", wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["PHYS"], Decimal("50"))
+        self.assertTrue("USD", wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["USD"], Decimal("998"))
 
     def test_sell_insufficient_asset_raises_error(self) -> None:
         # given
@@ -331,3 +331,31 @@ class WalletTest(unittest.TestCase):
 
         # then
         self.assertIsInstance(expected_error, InsufficientAssetError)
+
+    def test_stock_split_increase_asset(self) -> None:
+        # given
+        from_share = Share(amount=Decimal(20), symbol="PHYS.ARCA")
+        to_share = Share(amount=Decimal(100), symbol="PHYS.ARCA")
+        item = StockSplitItem(from_share=from_share, to_share=to_share, date=datetime(2020, 10, 20), transaction_id=1)
+        wallet = make_wallet({"PHYS.ARCA": "20"})
+
+        # when
+        wallet.stock_split(item)
+
+        # then
+        self.assertTrue("PHYS.ARCA" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["PHYS.ARCA"], Decimal("100"))
+
+    def test_stock_split_decrease_asset(self) -> None:
+        # given
+        from_share = Share(amount=Decimal(20), symbol="PHYS.ARCA")
+        to_share = Share(amount=Decimal(10), symbol="PHYS.ARCA")
+        item = StockSplitItem(from_share=from_share, to_share=to_share, date=datetime(2020, 10, 20), transaction_id=1)
+        wallet = make_wallet({"PHYS.ARCA": "20"})
+
+        # when
+        wallet.stock_split(item)
+
+        # then
+        self.assertTrue("PHYS.ARCA" in wallet.assets_copy)
+        self.assertEqual(wallet.assets_copy["PHYS.ARCA"], Decimal("10"))

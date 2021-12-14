@@ -1,3 +1,4 @@
+from src.domain.transactions import corporate_action_item
 import unittest
 from datetime import datetime
 from money import Money
@@ -7,7 +8,9 @@ from test.utils.capture_exception import capture_exception
 from src.domain.trading.buy_sell_fifo_matcher import BuySellFIFOMatcher
 from src.domain.transactions.buy_item import BuyItem
 from src.domain.transactions.sell_item import SellItem
+from src.domain.transactions.corporate_action_item import CorporateActionItem
 from src.domain.errors import InsufficientAssetError
+from src.domain.share import Share
 
 
 def newBuy(name: str, amount: int, paid: Money, commission: Money, date: datetime, transaction_id: int) -> BuyItem:
@@ -44,7 +47,7 @@ class TraderTest(unittest.TestCase):
         self.assertIsInstance(e, InsufficientAssetError)
 
     def test_buy10_sell10(self):
-        """ Scenario1 """
+        """Scenario1"""
 
         # given
         matcher = BuySellFIFOMatcher()
@@ -61,8 +64,29 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(item.sell, sell_item)
         self.assertEqual(item.amount_sold, Decimal(10))
 
+    def test_buy10_rename_sell10(self):
+        """Scenario1 with asset rename (so called corporate action)"""
+
+        # given
+        matcher = BuySellFIFOMatcher()
+        buy_item = newBuy("PHYS", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        corporate_action_item = CorporateActionItem(Share(10, "PHYS"), Share(10, "GOLD"), datetime(2000, 10, 25), 2)
+        sell_item = SellItem("GOLD", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 30), 3)
+
+        # when
+        matcher.buy(buy_item)
+        matcher.corporate_action(corporate_action_item)
+        matcher.sell(sell_item)
+
+        # then
+        renamed_buy_item = newBuy("GOLD", 10, Money("1000", "USD"), Money("1", "USD"), datetime(2000, 10, 20), 1)
+        item = matcher.buy_sell_pairs[0]
+        self.assertEqual(item.buy, renamed_buy_item)  # buy got renamed since first came rename then came sell which creates buy_sell_pairs
+        self.assertEqual(item.sell, sell_item)
+        self.assertEqual(item.amount_sold, Decimal(10))
+
     def test_buy20_sell10(self):
-        """ Scenario2 """
+        """Scenario2"""
 
         # given
         matcher = BuySellFIFOMatcher()
@@ -80,7 +104,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(item.amount_sold, Decimal(10))
 
     def test_buy20_sell10_sell10(self):
-        """ Scenario3 """
+        """Scenario3"""
 
         # given
         matcher = BuySellFIFOMatcher()
@@ -104,7 +128,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(item.amount_sold, Decimal(10))
 
     def test_buy15_buy15_sell10_sell10_sell10(self):
-        """ Scenario4 """
+        """Scenario4"""
 
         # given
         matcher = BuySellFIFOMatcher()
@@ -140,7 +164,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(item.amount_sold, Decimal(10))
 
     def test_buy10_buy10_sell20(self):
-        """ Scenario5 """
+        """Scenario5"""
 
         # given
         matcher = BuySellFIFOMatcher()
@@ -164,7 +188,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(item.amount_sold, Decimal(10))
 
     def test_buy10_buy10_buy10_sell15_sell15(self):
-        """ Scenario6 """
+        """Scenario6"""
 
         # given
         matcher = BuySellFIFOMatcher()

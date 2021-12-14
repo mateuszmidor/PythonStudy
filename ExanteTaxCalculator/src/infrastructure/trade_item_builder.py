@@ -31,6 +31,8 @@ class TradeItemBuilder:
 
         if is_corporate_action(inc, dec):
             result = self._build_corporate_action_item()
+        elif is_stock_split(inc, dec):
+            result = self._build_stock_split_item()
         elif inc is not None and is_dividend(inc):
             result = self._build_dividend_item()
         elif is_tax(dec):
@@ -52,11 +54,8 @@ class TradeItemBuilder:
         # increase money and decrease asset -> sell
         elif is_trade(inc) and is_money(inc) and is_trade(dec) and not is_money(dec):
             result = self._build_sell_item()
-        # increase asset and decrease asset -> barter trade
-        elif not is_money(inc) and not is_money(dec):
-            raise InvalidTradeError(f"Both assets are non-money -> barter trade not suported: {inc}, {dec}")
         else:
-            raise InvalidTradeError("Trade type is other than: buy/sell/fund/withdraw/exchange/autoconversion/dividend/tax/corporate action")
+            raise InvalidTradeError(f"Unrecognized operation type:\ninc: {inc}\ndec: {dec}")
 
         self._item.reset()
         return result
@@ -147,7 +146,7 @@ class TradeItemBuilder:
         )
 
     def _build_dividend_item(self) -> DividendItem:
-        """ Dividend has required dividend part and optional tax part """
+        """Dividend has required dividend part and optional tax part"""
         inc = self._item.increase
         assert inc is not None
         dec = self._item.decrease
@@ -156,13 +155,17 @@ class TradeItemBuilder:
         assert inc is not None
         assert transaction_id is not None
         # tax may be none; not reported together with dividend
-        if dec is not None and dec.operation_type != ReportRow.OperationType.TAX:
-            raise InvalidTradeError(f"Unexpected operation type, expected TAX, got: {dec.operation_type}")
+        # issuance fee may be none; not reported together with dividend
+        # there can be both: tax and issuance fee. Face that...
+        if dec is not None and dec.operation_type not in [ReportRow.OperationType.TAX, ReportRow.OperationType.ISSUANCE_FEE]:
+            raise InvalidTradeError(f"Unexpected operation type, expected TAX or ISSUANCE FEE, got: {dec.operation_type} [id: {dec.transaction_id}]")
         dividend = Money(inc.sum, inc.asset)
-        tax = self._build_tax_item() if dec is not None else None
+        tax = self._build_tax_item() if dec and dec.operation_type == ReportRow.OperationType.TAX else None
+        issuance_fee = self._build_issuance_fee_item() if dec and dec.operation_type == ReportRow.OperationType.ISSUANCE_FEE else None
         return DividendItem(
             received_dividend=dividend,
             paid_tax=tax,
+            paid_issuance_fee=issuance_fee,
             autoconversions=autoconversions,
             date=inc.when,
             transaction_id=transaction_id,
@@ -209,6 +212,18 @@ class TradeItemBuilder:
         to_share = Share(amount=inc.sum, symbol=inc.asset)
         return CorporateActionItem(from_share=from_share, to_share=to_share, date=dec.when, transaction_id=transaction_id)
 
+    def _build_stock_split_item(self) -> StockSplitItem:
+        inc = self._item.increase
+        dec = self._item.decrease
+        transaction_id = self._item.transaction_id
+        assert inc is not None
+        assert dec is not None
+        assert transaction_id is not None
+
+        from_share = Share(amount=-dec.sum, symbol=dec.asset)
+        to_share = Share(amount=inc.sum, symbol=inc.asset)
+        return StockSplitItem(from_share=from_share, to_share=to_share, date=dec.when, transaction_id=transaction_id)
+
 
 def is_money(row: Optional[ReportRow]) -> bool:
     return row is not None and Currency.is_currency(row.asset)
@@ -253,6 +268,15 @@ def is_corporate_action(row1, row2: Optional[ReportRow]) -> bool:
         and row1.operation_type == ReportRow.OperationType.CORPORATE_ACTION
         and row2 is not None
         and row2.operation_type == ReportRow.OperationType.CORPORATE_ACTION
+    )
+
+
+def is_stock_split(row1, row2: Optional[ReportRow]) -> bool:
+    return (
+        row1 is not None
+        and row1.operation_type == ReportRow.OperationType.STOCK_SPLIT
+        and row2 is not None
+        and row2.operation_type == ReportRow.OperationType.STOCK_SPLIT
     )
 
 

@@ -13,4 +13,5 @@ TransactionItem = Union[
     TaxItem,
     IssuanceFeeItem,
     CorporateActionItem,
+    StockSplitItem,
 ]
