@@ -36,7 +36,7 @@ class TransactionItemDataTest(unittest.TestCase):
         row = newRow(sum=10, asset="USD")
         data = TransactionItemData(
             increase=row,
-            decrease=row,
+            decrease=[row],
             commission=row,
             transaction_id=1,
             autoconversions=[row, row],
@@ -47,7 +47,7 @@ class TransactionItemDataTest(unittest.TestCase):
 
         # then
         self.assertIsNone(data.increase)
-        self.assertIsNone(data.decrease)
+        self.assertEqual(data.decrease, [])
         self.assertIsNone(data.commission)
         self.assertIsNone(data.transaction_id)
         self.assertEqual(data.autoconversions, [])
@@ -107,8 +107,9 @@ class TransactionItemDataTest(unittest.TestCase):
         data.add_row(row)
 
         # then
-        self.assertEqual(data.decrease.sum, -10)
-        self.assertEqual(data.decrease.asset, "PHYS")
+        self.assertEqual(len(data.decrease), 1)
+        self.assertEqual(data.decrease[0].sum, -10)
+        self.assertEqual(data.decrease[0].asset, "PHYS")
 
     def test_add_autoconversion_positive_money_sets_autoconversion_increase(self):
         # given
@@ -131,8 +132,9 @@ class TransactionItemDataTest(unittest.TestCase):
         data.add_row(row)
 
         # then
-        self.assertEqual(data.autoconversions[0].decrease.sum, -10)
-        self.assertEqual(data.autoconversions[0].decrease.asset, "USD")
+        self.assertEqual(len(data.autoconversions[0].decrease), 1)
+        self.assertEqual(data.autoconversions[0].decrease[0].sum, -10)
+        self.assertEqual(data.autoconversions[0].decrease[0].asset, "USD")
 
     def test_first_added_sets_transaction_id(self):
         # given

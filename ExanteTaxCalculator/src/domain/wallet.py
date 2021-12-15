@@ -70,7 +70,7 @@ class Wallet:
             self._assets[item.paid_issuance_fee.paid_fee.currency] -= item.paid_issuance_fee.paid_fee.amount
 
         # tax is always less than received dividend so no need to check for sufficient money
-        if item.paid_tax is not None:  # @@@ should pay the tax after autoconversions?
+        if item.paid_tax is not None:
             self._assets[item.paid_tax.paid_tax.currency] -= item.paid_tax.paid_tax.amount
 
     def tax(self, item: TaxItem) -> None:

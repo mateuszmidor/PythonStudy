@@ -33,12 +33,12 @@ class TradeItemBuilder:
             result = self._build_corporate_action_item()
         elif is_stock_split(inc, dec):
             result = self._build_stock_split_item()
-        elif inc is not None and is_dividend(inc):
+        elif is_dividend(inc):
             result = self._build_dividend_item()
         elif is_tax(dec):
-            result = self._build_tax_item()
+            result = self._build_tax_item(dec[0])
         elif is_issuance_fee(dec):
-            result = self._build_issuance_fee_item()
+            result = self._build_issuance_fee_item(dec[0])
         elif is_autoconversion(inc, dec):
             result = self._build_autoconversion_item()
         elif is_funding(inc, dec):
@@ -46,13 +46,13 @@ class TradeItemBuilder:
         elif is_withdrawal(inc, dec):
             result = self._build_withdrawal_item()
         # decrease money and increase money -> exchange
-        elif is_trade(inc) and is_money(inc) and is_trade(dec) and is_money(dec):
+        elif is_trade(inc) and is_money(inc) and len(dec) == 1 and is_trade(dec[0]) and is_money(dec[0]):
             result = self._build_exchange_item()
         # decrease money and increase asset -> buy
-        elif is_trade(inc) and not is_money(inc) and is_trade(dec) and is_money(dec):
+        elif is_trade(inc) and not is_money(inc) and len(dec) == 1 and is_trade(dec[0]) and is_money(dec[0]):
             result = self._build_buy_item()
         # increase money and decrease asset -> sell
-        elif is_trade(inc) and is_money(inc) and is_trade(dec) and not is_money(dec):
+        elif is_trade(inc) and is_money(inc) and len(dec) == 1 and is_trade(dec[0]) and not is_money(dec[0]):
             result = self._build_sell_item()
         else:
             raise InvalidTradeError(f"Unrecognized operation type:\ninc: {inc}\ndec: {dec}")
@@ -62,11 +62,10 @@ class TradeItemBuilder:
 
     def _build_buy_item(self) -> BuyItem:
         inc = self._item.increase
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         commission = self._item.commission
         transaction_id = self._item.transaction_id
         assert inc is not None
-        assert dec is not None
         assert transaction_id is not None
         paid = -Money(dec.sum, dec.asset)
         commision = Money("0", dec.asset) if commission is None else -Money(commission.sum, commission.asset)
@@ -84,11 +83,10 @@ class TradeItemBuilder:
 
     def _build_sell_item(self) -> SellItem:
         inc = self._item.increase
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         commission = self._item.commission
         transaction_id = self._item.transaction_id
         assert inc is not None
-        assert dec is not None
         assert transaction_id is not None
         received = Money(inc.sum, inc.asset)
         commission = Money("0", inc.asset) if commission is None else -Money(commission.sum, commission.asset)
@@ -120,11 +118,10 @@ class TradeItemBuilder:
         commission = self._item.commission
         if commission is not None:
             raise InvalidTradeError(f"Unexpected commission for withdrawal: {commission}")
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         if not is_money(dec):
             raise InvalidTradeError(f"Tried withdrawal with non-money: {dec}")
         transaction_id = self._item.transaction_id
-        assert dec is not None
         assert transaction_id is not None
         return WithdrawalItem(-Money(dec.sum, dec.asset), dec.when, transaction_id)
 
@@ -133,10 +130,9 @@ class TradeItemBuilder:
         if commission is not None:
             raise InvalidTradeError(f"Unexpected commission for exchange: {commission}")
         inc = self._item.increase
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         transaction_id = self._item.transaction_id
         assert inc is not None
-        assert dec is not None
         assert transaction_id is not None
         return ExchangeItem(
             exchange_from=-Money(dec.sum, dec.asset),
@@ -157,11 +153,20 @@ class TradeItemBuilder:
         # tax may be none; not reported together with dividend
         # issuance fee may be none; not reported together with dividend
         # there can be both: tax and issuance fee. Face that...
-        if dec is not None and dec.operation_type not in [ReportRow.OperationType.TAX, ReportRow.OperationType.ISSUANCE_FEE]:
-            raise InvalidTradeError(f"Unexpected operation type, expected TAX or ISSUANCE FEE, got: {dec.operation_type} [id: {dec.transaction_id}]")
+
+        if len(dec) > 2:
+            raise InvalidTradeError(f"Dividend can have at most 2 money stealers (Tax, Issuance Fee), but got: {dec}")
+
+        tax = issuance_fee = None
+        for dec_item in dec:
+            if dec_item.operation_type == ReportRow.OperationType.TAX:
+                tax = self._build_tax_item(dec_item)
+            elif dec_item.operation_type == ReportRow.OperationType.ISSUANCE_FEE:
+                issuance_fee = self._build_issuance_fee_item(dec_item)
+            else:
+                raise InvalidTradeError(f"Dividend allowed money stealers are (Tax, Issuance Fee), but got: {dec_item}")
+
         dividend = Money(inc.sum, inc.asset)
-        tax = self._build_tax_item() if dec and dec.operation_type == ReportRow.OperationType.TAX else None
-        issuance_fee = self._build_issuance_fee_item() if dec and dec.operation_type == ReportRow.OperationType.ISSUANCE_FEE else None
         return DividendItem(
             received_dividend=dividend,
             paid_tax=tax,
@@ -172,17 +177,13 @@ class TradeItemBuilder:
             comment=inc.comment,
         )
 
-    def _build_tax_item(self) -> TaxItem:
-        dec = self._item.decrease
+    def _build_tax_item(self, dec: ReportRow) -> TaxItem:
         transaction_id = self._item.transaction_id
-        assert dec is not None
         assert transaction_id is not None
         return TaxItem(paid_tax=-Money(dec.sum, dec.asset), date=dec.when, transaction_id=transaction_id, comment=dec.comment)
 
-    def _build_issuance_fee_item(self) -> IssuanceFeeItem:
-        dec = self._item.decrease
+    def _build_issuance_fee_item(self, dec: ReportRow) -> IssuanceFeeItem:
         transaction_id = self._item.transaction_id
-        assert dec is not None
         assert transaction_id is not None
         return IssuanceFeeItem(paid_fee=-Money(dec.sum, dec.asset), date=dec.when, transaction_id=transaction_id, comment=dec.comment)
 
@@ -191,10 +192,9 @@ class TradeItemBuilder:
         if commission is not None:
             raise InvalidTradeError(f"Unexpected commission for autoconversion: {commission}")
         inc = self._item.increase
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         transaction_id = self._item.transaction_id
         assert inc is not None
-        assert dec is not None
         assert transaction_id is not None
         return AutoConversionItem(
             conversion_from=-Money(dec.sum, dec.asset), conversion_to=Money(inc.sum, inc.asset), date=dec.when, transaction_id=transaction_id
@@ -202,10 +202,9 @@ class TradeItemBuilder:
 
     def _build_corporate_action_item(self) -> CorporateActionItem:
         inc = self._item.increase
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         transaction_id = self._item.transaction_id
         assert inc is not None
-        assert dec is not None
         assert transaction_id is not None
 
         from_share = Share(amount=-dec.sum, symbol=dec.asset)
@@ -214,10 +213,9 @@ class TradeItemBuilder:
 
     def _build_stock_split_item(self) -> StockSplitItem:
         inc = self._item.increase
-        dec = self._item.decrease
+        dec = self._item.decrease[0]  # len==1 checked during operation classification
         transaction_id = self._item.transaction_id
         assert inc is not None
-        assert dec is not None
         assert transaction_id is not None
 
         from_share = Share(amount=-dec.sum, symbol=dec.asset)
@@ -229,24 +227,24 @@ def is_money(row: Optional[ReportRow]) -> bool:
     return row is not None and Currency.is_currency(row.asset)
 
 
-def is_funding(inc, dec: Optional[ReportRow]) -> bool:
-    return inc is not None and inc.operation_type == ReportRow.OperationType.FUNDING_WITHDRAWAL and dec is None
+def is_funding(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
+    return inc is not None and inc.operation_type == ReportRow.OperationType.FUNDING_WITHDRAWAL and len(dec) == 0
 
 
-def is_withdrawal(inc, dec: Optional[ReportRow]) -> bool:
-    return dec is not None and dec.operation_type == ReportRow.OperationType.FUNDING_WITHDRAWAL and inc is None
+def is_withdrawal(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
+    return len(dec) == 1 and dec[0].operation_type == ReportRow.OperationType.FUNDING_WITHDRAWAL and inc is None
 
 
 def is_trade(row: Optional[ReportRow]) -> bool:
     return row is not None and row.operation_type == ReportRow.OperationType.TRADE
 
 
-def is_autoconversion(inc, dec: Optional[ReportRow]) -> bool:
+def is_autoconversion(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
     return (
         inc is not None
         and inc.operation_type == ReportRow.OperationType.AUTOCONVERSION
-        and dec is not None
-        and dec.operation_type == ReportRow.OperationType.AUTOCONVERSION
+        and len(dec) == 1
+        and dec[0].operation_type == ReportRow.OperationType.AUTOCONVERSION
     )
 
 
@@ -254,40 +252,40 @@ def is_dividend(row: Optional[ReportRow]) -> bool:
     return row is not None and row.operation_type == ReportRow.OperationType.DIVIDEND
 
 
-def is_tax(row: Optional[ReportRow]) -> bool:
-    return row is not None and row.operation_type == ReportRow.OperationType.TAX
+def is_tax(dec: List[ReportRow]) -> bool:
+    return len(dec) == 1 and dec[0].operation_type == ReportRow.OperationType.TAX
 
 
-def is_issuance_fee(row: Optional[ReportRow]) -> bool:
-    return row is not None and row.operation_type == ReportRow.OperationType.ISSUANCE_FEE
+def is_issuance_fee(dec: List[ReportRow]) -> bool:
+    return len(dec) == 1 and dec[0].operation_type == ReportRow.OperationType.ISSUANCE_FEE
 
 
-def is_corporate_action(row1, row2: Optional[ReportRow]) -> bool:
+def is_corporate_action(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
     return (
-        row1 is not None
-        and row1.operation_type == ReportRow.OperationType.CORPORATE_ACTION
-        and row2 is not None
-        and row2.operation_type == ReportRow.OperationType.CORPORATE_ACTION
+        inc is not None
+        and inc.operation_type == ReportRow.OperationType.CORPORATE_ACTION
+        and len(dec) == 1
+        and dec[0].operation_type == ReportRow.OperationType.CORPORATE_ACTION
     )
 
 
-def is_stock_split(row1, row2: Optional[ReportRow]) -> bool:
+def is_stock_split(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
     return (
-        row1 is not None
-        and row1.operation_type == ReportRow.OperationType.STOCK_SPLIT
-        and row2 is not None
-        and row2.operation_type == ReportRow.OperationType.STOCK_SPLIT
+        inc is not None
+        and inc.operation_type == ReportRow.OperationType.STOCK_SPLIT
+        and len(dec) == 1
+        and dec[0].operation_type == ReportRow.OperationType.STOCK_SPLIT
     )
 
 
 def build_autoconversions(items: List[TransactionItemData]) -> List[AutoConversionItem]:
     results: List[AutoConversionItem] = []
     for item in items:
-        assert item.decrease is not None
+        assert len(item.decrease) == 1, f"expected 1, was {len(item.decrease)}, items: {items}"
         assert item.increase is not None
         assert item.transaction_id is not None
         result = AutoConversionItem(
-            conversion_from=-Money(item.decrease.sum, item.decrease.asset),
+            conversion_from=-Money(item.decrease[0].sum, item.decrease[0].asset),
             conversion_to=Money(item.increase.sum, item.increase.asset),
             date=item.increase.when,
             transaction_id=item.transaction_id,

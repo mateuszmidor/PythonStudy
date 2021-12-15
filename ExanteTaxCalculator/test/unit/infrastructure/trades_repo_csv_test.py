@@ -392,38 +392,38 @@ class TradesRepoCSVTest(unittest.TestCase):
         self.assertEqual(item.transaction_id, 10)
         self.assertEqual(item.comment, "Dividend source")
 
-    # def test_read_dividend_with_tax_and_issuance_fee_success(self) -> None:
-    #     # TODO: allow dividend parsing with both tax and fee
-    #     # given
-    #     report_csv = [
-    #         '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-    #         '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"Dividend source"',
-    #         '"11"	"TBA0174.001"	"IEF.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15"	"USD"	"-12"	"Tax Comment"',
-    #         '"12"	"TBA0174.001"	"IEF.NASDAQ"	"ISSUANCE FEE"	"2020-06-24 19:52:01"	"-5"	"USD"	"-4"	"Issuance Fee Comment"',
-    #     ]
-    #     repo = TradesRepoCSV()
+    def test_read_dividend_with_tax_and_issuance_fee_success(self) -> None:
+        # TODO: allow dividend parsing with both tax and fee
+        # given
+        report_csv = [
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"Dividend source"',
+            '"11"	"TBA0174.001"	"IEF.NASDAQ"	"TAX"	"2020-06-24 19:52:01"	"-15"	"USD"	"-12"	"Tax Comment"',
+            '"12"	"TBA0174.001"	"IEF.NASDAQ"	"ISSUANCE FEE"	"2020-06-24 19:52:01"	"-5"	"USD"	"-4"	"Issuance Fee Comment"',
+        ]
+        repo = TradesRepoCSV()
 
-    #     # when
-    #     repo.load(report_csv, "\t")
+        # when
+        repo.load(report_csv, "\t")
 
-    #     # then
-    #     self.assertEqual(len(repo.items), 1)
-    #     assert isinstance(repo.items[0], DividendItem)  # plain assert so mypy doesnt complain below
-    #     item: DividendItem = repo.items[0]
-    #     self.assertEqual(item.received_dividend, Money("100", "USD"))
+        # then
+        self.assertEqual(len(repo.items), 1)
+        assert isinstance(repo.items[0], DividendItem)  # plain assert so mypy doesnt complain below
+        item: DividendItem = repo.items[0]
+        self.assertEqual(item.received_dividend, Money("100", "USD"))
+        self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
+        self.assertEqual(item.transaction_id, 10)
+        self.assertEqual(item.comment, "Dividend source")
 
-    #     assert item.paid_tax is not None  # plain assert so mypy doesnt complain below
-    #     self.assertEqual(item.paid_tax.paid_tax, Money("15", "USD"))
-    #     self.assertEqual(item.paid_tax.comment, "Tax Comment")
-    #     self.assertEqual(item.paid_tax.date, datetime(2020, 6, 24, 19, 52, 1))
+        assert item.paid_tax is not None  # plain assert so mypy doesnt complain below
+        self.assertEqual(item.paid_tax.paid_tax, Money("15", "USD"))
+        self.assertEqual(item.paid_tax.comment, "Tax Comment")
+        self.assertEqual(item.paid_tax.date, datetime(2020, 6, 24, 19, 52, 1))
 
-    #     assert item.paid_issuance_fee is not None  # plain assert so mypy doesnt complain below
-    #     self.assertEqual(item.paid_issuance_fee.paid_fee, Money("5", "USD"))
-    #     self.assertEqual(item.paid_issuance_fee.comment, "Issuance Fee Comment")
-    #     self.assertEqual(item.paid_issuance_fee.date, datetime(2020, 6, 24, 19, 52, 1))
-    #     self.assertEqual(item.date, datetime(2020, 6, 24, 19, 52, 1))
-    #     self.assertEqual(item.transaction_id, 10)
-    #     self.assertEqual(item.comment, "Dividend source")
+        assert item.paid_issuance_fee is not None  # plain assert so mypy doesnt complain below
+        self.assertEqual(item.paid_issuance_fee.paid_fee, Money("5", "USD"))
+        self.assertEqual(item.paid_issuance_fee.comment, "Issuance Fee Comment")
+        self.assertEqual(item.paid_issuance_fee.date, datetime(2020, 6, 24, 19, 52, 1))
 
     def test_read_tax_success(self) -> None:
         # given
