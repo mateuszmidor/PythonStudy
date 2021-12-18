@@ -1,3 +1,4 @@
+from src.domain.stock_exchange import StockExchange, stock_exchange_by_short_name
 from typing import List, Dict
 
 from src.domain.profit_item import ProfitPLN
@@ -23,15 +24,16 @@ class TradingReportPrinter:
         return lines
 
     def _format_profits(self, profits: Dict[str, List[ProfitPLN]]) -> List[str]:
-        """ profits are grouped by asset name, eg. profits from selling PHYS.ARCA are grouped under "PHYS.ARCA" """
+        """profits are grouped by asset name, eg. profits from selling PHYS.ARCA are grouped under "PHYS.ARCA" """
 
         format_str = "Przychód: {:0.2f} PLN. Koszt: {:0.2f} PLN. Z/S: {:0.2f} PLN\n"
         result: List[str] = list()
 
-        group_names = sorted(profits.keys())
+        group_names = sorted(profits.keys())  # eg. BIL.ARCA, OGZD.LSEIOB, TLT.NASDAQ
         for group_name in group_names:
             # group title
-            result.append(group_name)
+            stock_exchange_country = self._get_stock_exchange(group_name).country
+            result.append(f"{group_name} [{stock_exchange_country}]")
 
             # group items
             group = profits[group_name]
@@ -44,6 +46,11 @@ class TradingReportPrinter:
             result.append(totals)
 
         return result
+
+    @staticmethod
+    def _get_stock_exchange(assset_name: str) -> StockExchange:
+        stock_exchange_short_name = assset_name.split(".")[1]  # eg. TLT.NASDAQ -> NASDAQ
+        return stock_exchange_by_short_name(stock_exchange_short_name)
 
     def _format_dividends(self, dividends: List[DividendItemPLN]) -> List[str]:
         format_str = "Suma: {:0.2f} PLN\n"
