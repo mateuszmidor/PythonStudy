@@ -78,7 +78,7 @@ class Wallet:
         if item.paid_tax.currency not in self._assets:
             raise InsufficientAssetError(f"Tried to pay tax {item.paid_tax}, but no such currency in the wallet")
         if item.paid_tax.amount > self._assets[item.paid_tax.currency]:
-            raise InsufficientAssetError(f"Tried to pay tax {item.paid_tax}, but only has {self._assets[item.paid_tax.currency]}")
+            raise InsufficientAssetError(f"Tried to pay tax {item.paid_tax}, but only has {self._assets[item.paid_tax.currency]}; item: {item}")
 
         # apply transaction
         self._assets[item.paid_tax.currency] -= item.paid_tax.amount

@@ -149,6 +149,8 @@ Operations listed in report:
   - "ISSUANSE FEE" - related to dividend (any other relations?)
   - "STOCK SPLIT"
 
+Moreover, any of the above can be commented as "Rollback for transaction #..., and have inverted amount of money/shares.   
+
 Glossary:
 - money - currency with 3 characters symbol like USD, CAD, EUR
 - share - you buy it for money, many characters symbol like SHY.ARCA

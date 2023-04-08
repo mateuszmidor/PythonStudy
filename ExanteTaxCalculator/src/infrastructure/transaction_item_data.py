@@ -29,24 +29,35 @@ class TransactionItemData:
         self.decrease = []
         self.autoconversions = []
 
-    def add_row(self, row: ReportRow) -> None:
+    def add_row(self, row: ReportRow) -> bool:
         # first row making an item provides transaction_id
         if self.transaction_id is None:
             self.transaction_id = row.transaction_id
 
         if row.operation_type == ReportRow.OperationType.COMMISSION:
-            self._push_commission(row)
+            return self._push_commission(row)
         elif row.operation_type == ReportRow.OperationType.AUTOCONVERSION:
-            self._push_autoconversion(row)
+            return self._push_autoconversion(row)
         elif row.sum > 0:
+            # check if increase already set
+            if self.increase != None:
+                return False
             self.increase = row
         elif row.sum < 0:
             self.decrease.append(row)
         else:
             raise InvalidReportRowError(f"Invalid report row: {row}")
 
-    def _push_autoconversion(self, row: ReportRow) -> None:
-        if len(self.autoconversions) == 0 or (self.autoconversions[-1].increase != None and self.autoconversions[-1].decrease != []):
+        return True
+
+    def _push_autoconversion(self, row: ReportRow) -> bool:
+        last_item_complete = len(self.autoconversions) > 0 and self.autoconversions[-1].increase != None and self.autoconversions[-1].decrease != []
+
+        # there should be at most 2 autoconversions
+        if len(self.autoconversions) == 2 and last_item_complete:
+            return False  # limit reached
+
+        if len(self.autoconversions) == 0 or last_item_complete:
             self.autoconversions.append(TransactionItemData())
             self.autoconversions[-1].transaction_id = row.transaction_id
 
@@ -55,10 +66,17 @@ class TransactionItemData:
         else:
             self.autoconversions[-1].decrease.append(row)
 
-    def _push_commission(self, row: ReportRow) -> None:
+        return True
+
+    def _push_commission(self, row: ReportRow) -> bool:
         if not is_money(row):
             raise InvalidReportRowError(f"Commission should be money, got: {row}")
         if row.sum >= 0:
             raise InvalidReportRowError(f"Commission should be negative (substracted from account), got: {row}")
 
+        # check if commission is already set
+        if self.commission != None:
+            return False
+
         self.commission = row
+        return True

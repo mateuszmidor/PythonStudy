@@ -42,7 +42,7 @@ function setupVirtualEnv() {
         source ./venv/bin/activate 
 
         # install requirements into newly initialized virtualenv
-        $PIP install -r src/requirements.txt
+        $PIP install -r requirements.txt
     else
         # just activate virtualenv
         source ./venv/bin/activate

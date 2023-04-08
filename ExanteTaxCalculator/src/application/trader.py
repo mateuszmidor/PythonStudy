@@ -17,7 +17,7 @@ from src.domain.quotation.tax_item_pln_quotator import TaxItemPLNQuotator
 from src.domain.tax_declaration.tax_declaration_numbers_calculator import TaxDeclarationNumbersCalculator
 from src.domain.reporting.trading_report import TradingReport
 from src.domain.reporting.trading_report_builder import TradingReportBuilder
-from src.infrastructure.trades_repo_csv import TradesRepoCSV
+from src.infrastructure.trades_repo_csv_2 import TradesRepoCSV2
 
 
 class Trader:
@@ -28,13 +28,14 @@ class Trader:
         self._report: TradingReport
 
     def trade_items(self, report_csv_lines: Sequence[str], year: int) -> None:
-        repo = TradesRepoCSV()
+        repo = TradesRepoCSV2()
         repo.load(report_csv_lines=report_csv_lines)
         matcher = BuySellFIFOMatcher()
         received_dividends: List[DividendItem] = []
         paid_taxes: List[TaxItem] = []
 
-        for item in repo.items:
+        for i, item in enumerate(repo.items):
+            # print(i, item)
             if isinstance(item, FundingItem):
                 self._wallet.fund(item)
             elif isinstance(item, ExchangeItem):
@@ -83,9 +84,7 @@ class Trader:
         tax_items_pln += [item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None]  # add taxes reported with dividends
         tax_amounts = [item.paid_tax_pln for item in tax_items_pln]
 
-        results = self._tax_calculator.calc_tax_declaration_numbers(
-            buys=buy_amounts, sells=sell_amounts, dividends=dividend_amounts, taxes=tax_amounts
-        )
+        results = self._tax_calculator.calc_tax_declaration_numbers(buys=buy_amounts, sells=sell_amounts, dividends=dividend_amounts, taxes=tax_amounts)
 
         self._report = TradingReportBuilder.build(
             profits=money_flow_pln,

@@ -8,6 +8,7 @@ from src.domain.share import Share
 from src.infrastructure.report_row import ReportRow
 from src.infrastructure.transaction_item_data import TransactionItemData
 from src.infrastructure.errors import InvalidTradeError, InvalidReportRowError
+from src.infrastructure.builders.building import build_autoconversions, is_money
 
 
 class TradeItemBuilder:
@@ -39,8 +40,8 @@ class TradeItemBuilder:
             result = self._build_tax_item(dec[0])
         elif is_issuance_fee(dec):
             result = self._build_issuance_fee_item(dec[0])
-        elif is_autoconversion(inc, dec):
-            result = self._build_autoconversion_item()
+        # elif is_autoconversion(inc, dec):
+        #     result = self._build_autoconversion_item()
         elif is_funding(inc, dec):
             result = self._build_funding_item()
         elif is_withdrawal(inc, dec):
@@ -54,8 +55,10 @@ class TradeItemBuilder:
         # increase money and decrease asset -> sell
         elif is_trade(inc) and is_money(inc) and len(dec) == 1 and is_trade(dec[0]) and not is_money(dec[0]):
             result = self._build_sell_item()
+        elif is_autoconversion(self._item.autoconversions):
+            result = self._build_autoconversion_item()
         else:
-            raise InvalidTradeError(f"Unrecognized operation type:\ninc: {inc}\ndec: {dec}")
+            raise InvalidTradeError(f"Unrecognized operation type:\ninc: {inc}\ndec: {dec}\nitem: {self._item}")
 
         self._item.reset()
         return result
@@ -126,6 +129,7 @@ class TradeItemBuilder:
         return WithdrawalItem(-Money(dec.sum, dec.asset), dec.when, transaction_id)
 
     def _build_exchange_item(self) -> ExchangeItem:
+        """Money exchange is stored under TRADE item"""
         commission = self._item.commission
         if commission is not None:
             raise InvalidTradeError(f"Unexpected commission for exchange: {commission}")
@@ -191,13 +195,16 @@ class TradeItemBuilder:
         commission = self._item.commission
         if commission is not None:
             raise InvalidTradeError(f"Unexpected commission for autoconversion: {commission}")
-        inc = self._item.increase
-        dec = self._item.decrease[0]  # len==1 checked during operation classification
+        inc = self._item.autoconversions[0].increase
+        dec = self._item.autoconversions[0].decrease[0]  # len==1 checked during operation classification
         transaction_id = self._item.transaction_id
         assert inc is not None
         assert transaction_id is not None
         return AutoConversionItem(
-            conversion_from=-Money(dec.sum, dec.asset), conversion_to=Money(inc.sum, inc.asset), date=dec.when, transaction_id=transaction_id
+            conversion_from=-Money(dec.sum, dec.asset),
+            conversion_to=Money(inc.sum, inc.asset),
+            date=dec.when,
+            transaction_id=transaction_id,
         )
 
     def _build_corporate_action_item(self) -> CorporateActionItem:
@@ -223,10 +230,6 @@ class TradeItemBuilder:
         return StockSplitItem(from_share=from_share, to_share=to_share, date=dec.when, transaction_id=transaction_id)
 
 
-def is_money(row: Optional[ReportRow]) -> bool:
-    return row is not None and Currency.is_currency(row.asset)
-
-
 def is_funding(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
     return inc is not None and inc.operation_type == ReportRow.OperationType.FUNDING_WITHDRAWAL and len(dec) == 0
 
@@ -239,13 +242,8 @@ def is_trade(row: Optional[ReportRow]) -> bool:
     return row is not None and row.operation_type == ReportRow.OperationType.TRADE
 
 
-def is_autoconversion(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
-    return (
-        inc is not None
-        and inc.operation_type == ReportRow.OperationType.AUTOCONVERSION
-        and len(dec) == 1
-        and dec[0].operation_type == ReportRow.OperationType.AUTOCONVERSION
-    )
+def is_autoconversion(autoconversions: List[TransactionItemData]) -> bool:
+    return len(autoconversions) > 0
 
 
 def is_dividend(row: Optional[ReportRow]) -> bool:
@@ -276,19 +274,3 @@ def is_stock_split(inc: Optional[ReportRow], dec: List[ReportRow]) -> bool:
         and len(dec) == 1
         and dec[0].operation_type == ReportRow.OperationType.STOCK_SPLIT
     )
-
-
-def build_autoconversions(items: List[TransactionItemData]) -> List[AutoConversionItem]:
-    results: List[AutoConversionItem] = []
-    for item in items:
-        assert len(item.decrease) == 1, f"expected 1, was {len(item.decrease)}, items: {items}"
-        assert item.increase is not None
-        assert item.transaction_id is not None
-        result = AutoConversionItem(
-            conversion_from=-Money(item.decrease[0].sum, item.decrease[0].asset),
-            conversion_to=Money(item.increase.sum, item.increase.asset),
-            date=item.increase.when,
-            transaction_id=item.transaction_id,
-        )
-        results.append(result)
-    return results
