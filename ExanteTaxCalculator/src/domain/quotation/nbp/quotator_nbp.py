@@ -51,7 +51,7 @@ class QuotatorNBP:
         self._logger = logging.getLogger(__name__)
 
     def get_average_pln_for_day(self, currency: Currency, date: datetime.date) -> Optional[Decimal]:
-        """ Implements QuotesProviderProtocol """
+        """Implements QuotesProviderProtocol"""
 
         url = QuotatorNBP._make_url(currency.value, date)
         return self._read_average_pln(url)
@@ -81,7 +81,7 @@ class QuotatorNBP:
     def _log_http_not_ok(self, code: int, body: str, url: str) -> None:
         # NOT_FOUND is expected normal situation for weekdays when there is no quotation available
         if code == HTTPStatus.NOT_FOUND:
-            self._logger.info(f"HTTP status {code}: fetching {url}: {body}")
+            self._logger.info(f"HTTP status {code}: fetching {url}: {body} - probably public holiday")
         else:
             self._logger.error(f"HTTP status {code}: fetching {url}: {body}")
 

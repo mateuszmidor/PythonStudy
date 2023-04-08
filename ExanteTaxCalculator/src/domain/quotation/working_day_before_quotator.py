@@ -11,13 +11,13 @@ ONE_DAY = datetime.timedelta(days=1)
 
 
 class WorkingDayBeforeQuotator:
-    """ Finds quotation according to D-1 rule - last working day """
+    """Finds quotation according to D-1 rule - last working day"""
 
     def __init__(self, quotes_provider: QuotesProviderProtocol) -> None:
         self._quotes_provider = quotes_provider
 
     def quote(self, currency: str, for_date: datetime.datetime) -> Tuple[Decimal, datetime.date]:
-        """ result: [currency/PLN ratio, quotation date] """
+        """result: [currency/PLN ratio, quotation date]"""
 
         curr = Currency(currency)
         date = datetime.date(for_date.year, for_date.month, for_date.day)  # only date, no time information is needed for quotation
