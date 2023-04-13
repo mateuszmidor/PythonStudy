@@ -37,18 +37,16 @@ class Wallet:
         self._assets[item.exchange_from.currency] -= item.exchange_from.amount
         self._assets[item.exchange_to.currency] += item.exchange_to.amount
 
-    # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
-    # def autoconversion(self, item: AutoConversionItem) -> None:
-    #     Wallet._autoconversion(item, self._assets)
+    # in 2023 it turned out that autoconversion can be a standalone transaction
+    def autoconversion(self, item: AutoConversionItem) -> None:
+        Wallet._autoconversion(item, self._assets)
 
     @staticmethod
     def _autoconversion(item: AutoConversionItem, assets: Dict[str, Decimal]) -> None:
         """autoconversion if effectively the same as exchange"""
         # check transaction possible
         if item.conversion_from.currency not in assets:
-            raise InsufficientAssetError(
-                f"Tried to autoconvert {item.conversion_from}, but no such asset in the wallet: {assets}, id: {item.transaction_id}"
-            )
+            raise InsufficientAssetError(f"Tried to autoconvert {item.conversion_from}, but no such asset in the wallet: {assets}, id: {item.transaction_id}")
         if item.conversion_from.amount > assets[item.conversion_from.currency]:
             raise InsufficientAssetError(
                 f"Tried to autoconvert {item.conversion_from}, but only has {assets[item.conversion_from.currency]}, id: {item.transaction_id}"

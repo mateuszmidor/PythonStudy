@@ -43,15 +43,15 @@ class Trader:
             elif isinstance(item, BuyItem):
                 self._wallet.buy(item)
                 matcher.buy(item)
-            elif isinstance(item, SellItem):  # check date here
+            elif isinstance(item, SellItem):  # generates numbers for PIT38 - check year here
                 self._wallet.sell(item)
                 if item.date.year == year:
                     matcher.sell(item)
-            elif isinstance(item, DividendItem):  # check date here
+            elif isinstance(item, DividendItem):  # generates numbers for PIT38 - check year here
                 self._wallet.dividend(item)
                 if item.date.year == year:
                     received_dividends.append(item)
-            elif isinstance(item, TaxItem):  # check date here
+            elif isinstance(item, TaxItem):  # generates numbers for PIT38 - check year here
                 self._wallet.tax(item)
                 if item.date.year == year:
                     paid_taxes.append(item)
@@ -65,8 +65,11 @@ class Trader:
                 matcher.stock_split(item)
             elif isinstance(item, WithdrawalItem):
                 self._wallet.withdraw(item)
-            elif isinstance(item, AutoConversionItem):  # Autoconversion doesnt seem to be standalone transaction but always follows Buy/Sell/Dividend
-                raise TypeError(f"Autoconversion is not expected to be a standalone transaction but so it happened: {type(item)}")
+            elif isinstance(item, AutoConversionItem):
+                self._wallet.autoconversion(item)
+                # in 2023 report it turned out autoconversion can be a standalone transaction.
+                # before it was:
+                # raise TypeError(f"Autoconversion is not expected to be a standalone transaction but so it happened: {type(item)}")
             else:
                 raise TypeError(f"Not implemented transaction type: {type(item)}")
 
