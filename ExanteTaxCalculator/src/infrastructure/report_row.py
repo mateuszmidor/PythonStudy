@@ -1,6 +1,6 @@
 from decimal import Decimal
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
 from typing import Dict
 
@@ -21,6 +21,7 @@ class ReportRow:
         AUTOCONVERSION = "AUTOCONVERSION"
         DIVIDEND = "DIVIDEND"
         TAX = "TAX"
+        US_TAX = "US TAX"
         CORPORATE_ACTION = "CORPORATE ACTION"
         ISSUANCE_FEE = "ISSUANCE FEE"
         STOCK_SPLIT = "STOCK SPLIT"
@@ -48,8 +49,9 @@ class ReportRow:
         if self.asset == "":
             raise InvalidReportRowError("asset should not be empty")
 
-        if self.sum == 0:
-            raise InvalidReportRowError("sum should not be zero")
+        # actually, sum can be 0 for COMMISSION
+        # if self.sum == 0:
+        # raise InvalidReportRowError("sum should not be zero")
 
     @classmethod
     def from_dict(cls, d: Dict[str, str]):
@@ -67,3 +69,7 @@ class ReportRow:
             )
         except (KeyError, ValueError) as e:
             raise InvalidReportRowError from e
+
+    def __str__(self) -> str:
+        lines = [f"{field.name} = {getattr(self, field.name)}" for field in fields(self)]
+        return "\n".join(lines)
