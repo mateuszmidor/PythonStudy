@@ -239,10 +239,10 @@ class TraderTest(unittest.TestCase):
         # given
         csv_report_lines = [
             '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
-            # collect 100 USD dividend
-            '"2001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
-            # pay 15 USD tax
-            '"1001"	"TBA0174.001"	"SHY.ARCA"	"TAX"	"2020-10-21 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
+            # then pay 15 USD tax
+            '"2001"	"TBA0174.001"	"TLT"	"TAX"	"2020-10-21 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
+            # first collect 100 USD dividend
+            '"1001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
         ]
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)

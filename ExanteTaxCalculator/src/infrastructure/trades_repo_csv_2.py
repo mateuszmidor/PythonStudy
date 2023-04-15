@@ -131,7 +131,7 @@ def filter_rollbacked_rows(rows: List[ReportRow]) -> List[ReportRow]:
     """Need to filter both, rolled back rows and rows specifying the rollbacks"""
     import re
 
-    TRANSACTION_ID_PATTERN = r"#\d+"  # e.g. #123456
+    TRANSACTION_ID_PATTERN = r"#\d+"  # e.g. "#123456"
 
     transactions_to_remove: Set[int] = set()
 

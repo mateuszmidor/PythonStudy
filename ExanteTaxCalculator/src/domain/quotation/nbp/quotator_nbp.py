@@ -44,7 +44,7 @@ class QuotatorNBP:
     API: http://api.nbp.pl/#kursyWalut
     """
 
-    URL = "http://api.nbp.pl/api/exchangerates/rates/a/{currency}/{date}"  # table A for averag prices, currency as USD, date as 2020-03-23
+    URL = "http://api.nbp.pl/api/exchangerates/rates/a/{currency}/{date}"  # table A for average prices, currency format as "USD", date as "2020-03-23"
 
     def __init__(self, fetcher: UrlFetcher) -> None:
         self._fetcher = fetcher
