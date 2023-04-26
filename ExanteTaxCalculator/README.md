@@ -95,8 +95,8 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 ## Exante data
 
 Notice: 
-- transactions exported from Exante are sorted by date descending. So start reading from the bottom
-- transactions building single trade have same date and time, and TransactionID incrementing
+- transactions building single trade have the same SymbolID and the TransactionID is incrementing
+- transactions exported from Exante are only roughly sorted, must be sorted by TransactionID and processed in ascending order
 
 ```
 Transaction ID  Account ID    Symbol ID       Operation type      When                  Sum       Asset     EUR equivalent  Comment
@@ -140,11 +140,12 @@ Questions:
 
 Operations listed in report:
   - "FUNDING/WITHDRAWAL"
-  - "TRADE" (covers money exchange)
+  - "TRADE" (includes money exchange)
   - "COMMISSION" (optional, no commission in case of exchange)
-  - "AUTOCONVERSION"
+  - "AUTOCONVERSION" (can be an individual item or part of other item)
   - "DIVIDEND"
   - "TAX"
+  - "US TAX" - works like normal TAX
   - "CORPORATE ACTION"
   - "ISSUANSE FEE" - related to dividend (any other relations?)
   - "STOCK SPLIT"
