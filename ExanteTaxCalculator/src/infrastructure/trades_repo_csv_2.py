@@ -1,4 +1,4 @@
-""" 
+"""
 In a report, the rows may come not exactly sorted by TransactionID in ascending order.
 Such ordering is required to correctly build TransactionItems from ReportRows.
 Repo will ensure such ordering.
@@ -45,6 +45,8 @@ class TradesRepoCSV2:
         "Asset",
         "EUR equivalent",
         "Comment",
+        "UUID",
+        "Parent UUID"
     ]
 
     def __init__(self) -> None:
@@ -66,17 +68,20 @@ class TradesRepoCSV2:
 
         # build TransactionItems from ReportRows
         builder: Builder = SentinelBuilder()
-        for row in sorted_rows:
-            print(f"Processing transaction: {row.transaction_id}\n{row}\n")
+        for rown, row in enumerate(sorted_rows):
+            print(f"Processing row {rown}, transaction: {row.transaction_id}")
 
             if isinstance(builder, SentinelBuilder):
+                print(f"NEW BUILDER: {row.operation_type}")
                 builder = self._get_builder(row.operation_type)
 
             if not builder.add(row):
                 self._items.append(builder.build())
+                print(f"NEW BUILDER: {row.operation_type}")
                 builder = self._get_builder(row.operation_type)
                 builder.add(row)
-
+            print(row)
+            print()
         # append the final TransactionItems
         self._items.append(builder.build())
 

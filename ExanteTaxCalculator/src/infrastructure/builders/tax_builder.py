@@ -29,7 +29,7 @@ class TaxBuilder(Builder):
             return False
 
         # check if the operation is applicable for this item type
-        if row.operation_type not in {ReportRow.OperationType.TAX}:
+        if row.operation_type not in {ReportRow.OperationType.TAX, ReportRow.OperationType.US_TAX}:
             return False
 
         if len(self._item.decrease) == 1:

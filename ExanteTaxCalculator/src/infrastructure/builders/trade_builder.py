@@ -20,20 +20,27 @@ class TradeBuilder(Builder):
     def __init__(self) -> None:
         super().__init__()
         self._item = TransactionItemData()
+        self._uuids : list[str] = []
 
     def add(self, row: ReportRow) -> bool:
         """Returns False if the row could not be added - meaning that the item is complete and ready to build"""
 
+        # uuid is used to link autoconversion with trade; they occur in sequence: first trade with uuid, then autoconversions with parent_uuid = uuid
+        self._uuids.append(row.uuid)
+
         # check if we are still processing the same transaction that we began with
-        if not self.transaction_continues(row.symbol_id):
+        if row.parent_uuid not in self._uuids and not self.transaction_continues(row.symbol_id) :
+            print("### new transaction ended")
             return False
 
         # check if the operation is applicable for this item type
         if row.operation_type not in {ReportRow.OperationType.TRADE, ReportRow.OperationType.COMMISSION, ReportRow.OperationType.AUTOCONVERSION}:
+            print("### invalid transaction type")
             return False
 
         # specific to TradeItem: there can be only 1 decrease action
         if row.sum < 0 and row.operation_type == ReportRow.OperationType.TRADE and len(self._item.decrease) == 1:
+            print("### decrease found")
             return False
 
         # specific to TradeItem: money exchange cant have AUTOCONVERSION actions
@@ -43,6 +50,7 @@ class TradeBuilder(Builder):
             and len(self._item.decrease) > 0
             and is_money(self._item.decrease[0])
         ):
+            print("### autoconversion")
             return False
 
         return self._item.add_row(row)

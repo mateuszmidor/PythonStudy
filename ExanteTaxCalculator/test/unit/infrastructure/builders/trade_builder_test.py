@@ -13,6 +13,7 @@ COMMISSION = ReportRow.OperationType.COMMISSION
 AUTOCONVERSION = ReportRow.OperationType.AUTOCONVERSION
 DIVIDEND = ReportRow.OperationType.DIVIDEND
 TAX = ReportRow.OperationType.TAX
+US_TAX=ReportRow.OperationType.US_TAX
 CORPORATE_ACTION = ReportRow.OperationType.CORPORATE_ACTION
 ISSUANCE_FEE = ReportRow.OperationType.ISSUANCE_FEE
 STOCK_SPLIT = ReportRow.OperationType.STOCK_SPLIT

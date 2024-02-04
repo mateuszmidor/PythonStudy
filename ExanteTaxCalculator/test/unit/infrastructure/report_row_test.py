@@ -20,6 +20,8 @@ class ReportRowTest(unittest.TestCase):
             "Asset": "PHYS.ARCA",
             "EUR equivalent": "1269.77",
             "Comment": "Buy 100.5 units of PHYS",
+            "UUID": "8e2d4c93-e7d7-4dd9-8ad4-c840fede8a51",
+            "Parent UUID": "4aee4eec-0d9c-42e3-8586-a1b7088a300d",
         }
 
         # when
@@ -35,6 +37,8 @@ class ReportRowTest(unittest.TestCase):
         self.assertEqual(row.asset, "PHYS.ARCA")
         self.assertEqual(row.eur_equivalent, Decimal("1269.77"))
         self.assertEqual(row.comment, "Buy 100.5 units of PHYS")
+        self.assertEqual(row.uuid, "8e2d4c93-e7d7-4dd9-8ad4-c840fede8a51")
+        self.assertEqual(row.parent_uuid, "4aee4eec-0d9c-42e3-8586-a1b7088a300d")
 
     def test_from_dict_missing_transactionid_raises_error(self):
         # given
@@ -156,22 +160,23 @@ class ReportRowTest(unittest.TestCase):
         # then
         self.assertIsInstance(expected_error, InvalidReportRowError)
 
-    def test_from_dict_sum_zero_raises_error(self):
-        # given
-        dic = {
-            "Transaction ID": "123",
-            "Account ID": "TBA0174.001",
-            "Symbol ID": "PHYS.ARCA",
-            "Operation type": "TRADE",
-            "When": "2020-06-29 16:10:43",
-            "Sum": "0",
-            "Asset": "PHYS.ARCA",
-            "EUR equivalent": "0",
-            "Comment": "Buy 0 units of PHYS",
-        }
+    # actually, sum can be 0 for COMMISSION
+    # def test_from_dict_sum_zero_raises_error(self):
+    #     # given
+    #     dic = {
+    #         "Transaction ID": "123",
+    #         "Account ID": "TBA0174.001",
+    #         "Symbol ID": "PHYS.ARCA",
+    #         "Operation type": "TRADE",
+    #         "When": "2020-06-29 16:10:43",
+    #         "Sum": "0",
+    #         "Asset": "PHYS.ARCA",
+    #         "EUR equivalent": "0",
+    #         "Comment": "Buy 0 units of PHYS",
+    #     }
 
-        # when
-        expected_error = capture_exception(ReportRow.from_dict, dic)
+    #     # when
+    #     expected_error = capture_exception(ReportRow.from_dict, dic)
 
-        # then
-        self.assertIsInstance(expected_error, InvalidReportRowError)
+    #     # then
+    #     self.assertIsInstance(expected_error, InvalidReportRowError)

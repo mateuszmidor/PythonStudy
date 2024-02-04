@@ -35,6 +35,8 @@ class ReportRow:
     asset: str
     eur_equivalent: Decimal
     comment: str
+    uuid: str = "" # here and parent_uuid have defalt "" to satisfy hordes of unit tests
+    parent_uuid: str = "" # in case of autoconversion resulting from trade, here is the "uuid" of the trade causing autoconversion
 
     def __post_init__(self):
         if self.transaction_id < 0:
@@ -66,6 +68,8 @@ class ReportRow:
                 asset=d["Asset"],
                 eur_equivalent=Decimal(d["EUR equivalent"]),
                 comment=d["Comment"],
+                uuid=d.get("UUID", ""),
+                parent_uuid=d.get("Parent UUID", "")
             )
         except (KeyError, ValueError) as e:
             raise InvalidReportRowError from e
