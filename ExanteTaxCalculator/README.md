@@ -13,7 +13,7 @@ pip install .
 ## Run
 
 ```bash
-exante-calculator exante_report.csv 2020 
+exante-calculator exante_report.csv 2020
 ```
 
 ## Development
@@ -63,7 +63,7 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 - quote all the Buy/Sell pairs in PLN (NBP quotation: take previous working day from sell date)
 - quote all Dividends in PLN
 - quote all Taxes in PLN
-- calc income and cost of every Buy/Sell pair and store into Profit ite. Amounts depend on how many shares were sold in each specific pair;  
+- calc income and cost of every Buy/Sell pair and store into Profit ite. Amounts depend on how many shares were sold in each specific pair;
   buy commission increases the cost part and sell commission decreases the income part
 - calc total income as sum of sells and dividends
 - calc total cost as sum of all buys and issuance fees
@@ -94,7 +94,7 @@ Rules by <https://jakoszczedzacpieniadze.pl/jak-rozliczyc-podatek-od-dywidendy-z
 
 ## Exante data
 
-Notice: 
+Notice:
 - transactions building single trade have the same SymbolID and the TransactionID is incrementing
 - transactions exported from Exante are only roughly sorted, must be sorted by TransactionID and processed in ascending order
 
@@ -102,7 +102,7 @@ Notice:
 Transaction ID  Account ID    Symbol ID       Operation type      When                  Sum       Asset     EUR equivalent  Comment
 
 78757917        TBA0174.001   IEF.NASDAQ      DIVIDEND            2020-12-17 11:02:25   1.45      USD        1.19           20.0 shares 2020-12-17 dividend IEF.NASDAQ 1.45 USD (0.072535 per share) tax 0.22 USD (15.0%)
-78757918        TBA0174.001   IEF.NASDAQ      TAX                 2020-12-17 11:02:25   -0.22     USD        -0.18  
+78757918        TBA0174.001   IEF.NASDAQ      TAX                 2020-12-17 11:02:25   -0.22     USD        -0.18
 
 77471454        TBA0174.001   CLR.SGX         AUTOCONVERSION      2020-12-08 06:27:21   2.5       SGD        1.54
 77471455        TBA0174.001   CLR.SGX         AUTOCONVERSION      2020-12-08 06:27:21   -1.88     USD        -1.55
@@ -116,7 +116,7 @@ Transaction ID  Account ID    Symbol ID       Operation type      When          
 
 62088984        TBA0174.001   SHY.ARCA        TRADE               2020-06-24 19:54:08   150       SHY.ARCA  11534.16        // buy/sell subject
 62088986        TBA0174.001   SHY.ARCA        TRADE               2020-06-24 19:54:08   -12985.5  USD       -11534.16       // paid/received money
-62088988        TBA0174.001   SHY.ARCA        COMMISSION          2020-06-24 19:54:08   -3        USD       -2.66           // paid commission 
+62088988        TBA0174.001   SHY.ARCA        COMMISSION          2020-06-24 19:54:08   -3        USD       -2.66           // paid commission
 
 62088337        TBA0174.001   EUR/USD.EXANTE  TRADE               2020-06-24 19:52:01   -13400    EUR       -13400
 62088340        TBA0174.001   EUR/USD.EXANTE  TRADE               2020-06-24 19:52:01   15067.63  USD       13386.73
@@ -150,7 +150,7 @@ Operations listed in report:
   - "ISSUANSE FEE" - related to dividend (any other relations?)
   - "STOCK SPLIT"
 
-Moreover, any of the above can be commented as "Rollback for transaction #..., and have inverted amount of money/shares.   
+Moreover, any of the above can be commented as "Rollback for transaction #..., and have inverted amount of money/shares.
 
 Glossary:
 - money - currency with 3 characters symbol like USD, CAD, EUR
@@ -177,6 +177,11 @@ AutoConversion - like currency exchange but OperationType is AUTOCONVERSION inst
 ## CRYPTO
 
 - can't collectively calc tax from crypto and other investments
-- separate place on declaration to testify crypto cost and profit  
+- separate place on declaration to testify crypto cost and profit
 - crypto exchange for another crypto is not subject to tax, only sell for real money
 
+## Changes introduced to support tax year
+
+- 2023:
+  - added support for `AUTOCONVERSION` linked to `TRADE` by "Parent UUID" - "UUID" fields
+  - fixed `US TAX` support - was missing from TaxBuilder
