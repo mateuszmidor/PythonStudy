@@ -38,7 +38,7 @@ def url_fetch(url: str) -> Tuple[str, HTTPStatus]:
         r = requests.get(url)
         return r.text, HTTPStatus(r.status_code)
     except requests.exceptions.HTTPError as err:
-        return str(err), err.response.status_code
+        return str(err), HTTPStatus(err.response.status_code)
 
 
 def csv_read_utf8(filename: str) -> List[str]:
