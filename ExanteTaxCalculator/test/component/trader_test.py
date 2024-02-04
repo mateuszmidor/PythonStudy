@@ -51,7 +51,7 @@ class QuotesProviderStub:
 class TraderTest(unittest.TestCase):
     def test_empty_input_empty_output(self) -> None:
         # given
-        csv_report_lines = ['"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"']
+        csv_report_lines = ['"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"']
         quotes_provider_stub = QuotesProviderStub()
         trader = Trader(quotes_provider=quotes_provider_stub, tax_percentage=TAX_PERCENTAGE)
 
@@ -74,7 +74,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_withdraw_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # withdraw 50 USD
             '"2000"	"TBA9999.001"	"None"	"FUNDING/WITHDRAWAL"	"2020-10-21 20:40:55"	"-99"	"USD"	"0"	"None"',
             # add 100 USD
@@ -103,7 +103,7 @@ class TraderTest(unittest.TestCase):
         # given
         csv_report_lines = [
             # exchange 1000 EUR -> 1500 USD
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             '"2001"	"TBA9999.001"	"EUR/USD.EXANTE"	"TRADE"	"2020-10-21 20:40:55"	"-1000.0"	"EUR"	"-1000.0"	"None"',
             '"2002"	"TBA9999.001"	"EUR/USD.EXANTE"	"TRADE"	"2020-10-21 20:40:55"	"1500.00"	"USD"	"1000.00"	"None"',
             # add 1000 EUR
@@ -135,7 +135,7 @@ class TraderTest(unittest.TestCase):
     def test_dividend_together_with_issuance_fee_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"ISIN"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"ISIN"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # receive dividend
             '"1001"	"TBA0174.001"	"GSK.NYSE"	"None"	"DIVIDEND"	"2021-10-19 15:12:48"	"100"	"USD"	"6.22"	"14.0 shares 2021-08-19 dividend GSK.NYSE 7.24 USD (0.5175125 per share) dividend fee amount 0.11 USD (0.0075 per share)"	"f6760f1a-a3cc-4f45-b601-89f9dcfe77a9"	"None"',
             # pay fee
@@ -168,7 +168,7 @@ class TraderTest(unittest.TestCase):
     def test_dividend_without_tax_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # receive dividend
             '"10"	"TBA0174.001"	"IEF.NASDAQ"	"DIVIDEND"	"2020-06-24 19:52:01"	"100"	"USD"	"75"	"None"',
         ]
@@ -201,7 +201,7 @@ class TraderTest(unittest.TestCase):
 
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # collect 100 USD dividend
             '"1001"	"TBA0174.001"	"SHY.ARCA"	"DIVIDEND"	"2020-10-20 20:40:55"	"100"	"USD"	"75"	"Dividend"',
             # pay 15 USD tax
@@ -238,7 +238,7 @@ class TraderTest(unittest.TestCase):
 
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # then pay 15 USD tax
             '"2001"	"TBA0174.001"	"TLT"	"TAX"	"2020-10-21 20:40:55"	"-15"	"USD"	"-12"	"Dividend 15% tax"',
             # first collect 100 USD dividend
@@ -273,7 +273,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_tax_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # tax 15 USD
             '"2000"	"TBA0174.001"	"TLT.NASDAQ"	"TAX"	"2020-10-21 20:40:55"	"-15.0"	"USD"	"-12.0"	"Tax"',
             # add 1000 USD
@@ -305,7 +305,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_issuance_fee_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # issuance fee 15 USD
             '"2000"	"TBA0174.001"	"TLT.NASDAQ"	"ISSUANCE FEE"	"2020-10-21 20:40:55"	"-15.0"	"USD"	"-12.0"	"Issuance fee"',
             # add 1000 USD
@@ -333,7 +333,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_exchange_buy_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # buy 50 PHYS for 700 USD
             '"3001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-22 20:40:55"	"50"	"PHYS.ARCA"	"0"	"None"',
             '"3002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-22 20:40:55"	"-699.0"	"USD"	"0"	"None"',
@@ -372,7 +372,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_buy_with_autoconversion_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # buy 50 PHYS for 700 USD with autoconversion from EUR
             '"3001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-22 20:40:55"	"50"	"PHYS.ARCA"	"0"	"None"',
             '"3002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-22 20:40:55"	"-699.0"	"USD"	"0"	"None"',
@@ -412,7 +412,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_buy_with_autoconversion_sell_with_autoconversion_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # sell 50 CLR.SGX for 1500 SGD with autoconversion to 1200 USD including commission
             '"4001"	"TBA9999.001"	"CLR.SGX"	"TRADE"	"2020-10-23 20:40:55"	"-50"	"CLR.SGX"	"0"	"None"',
             '"4002"	"TBA9999.001"	"CLR.SGX"	"TRADE"	"2020-10-23 20:40:55"	"1502"	"SGD"	"0"	"None"',
@@ -460,7 +460,7 @@ class TraderTest(unittest.TestCase):
     def test_dividend_with_autoconversion_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             '"1"	"TBA0174.001"	"CLR.SGX"	"DIVIDEND"	"2020-12-08 06:27:21"	"30"	"SGD"	"0"	"1300.0 shares (0.024 per share)"',
             '"2"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"-30.0"	"SGD"	"0"	"1300.0 shares (0.024 per share)"',
             '"3"	"TBA0174.001"	"CLR.SGX"	"AUTOCONVERSION"	"2020-12-08 06:27:21"	"20.0"	"USD"	"0"	"1300.0  (0.024 per share)"',
@@ -496,7 +496,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_exchange_buy_sell_profit_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # sell 50 PHYS for 800 USD
             '"4001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
             '"4002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"801.0"	"USD"	"0"	"None"',
@@ -540,7 +540,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_exchange_buy_sell_loss_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # sell 50 PHYS for 600 USD
             '"4001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
             '"4002"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2020-10-23 20:40:55"	"601.0"	"USD"	"0"	"None"',
@@ -583,7 +583,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_buy_corporate_action_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # corporate action 10 SHY.ARCA -> 10 SHY.NYSE
             '"3001"	"TBA9999.001"	"SHY.ARCA"	"CORPORATE ACTION"	"2020-10-22 20:40:55"	"-10"	"SHY.ARCA"	"-2027.87"	"SHY.ARCA to SHY.NYSE"',
             '"3002"	"TBA9999.001"	"SHY.NYSE"	"CORPORATE ACTION"	"2020-10-22 20:40:55"	"10"	"SHY.NYSE"	"2063.21"	"SHY.ARCA to SHY.NYSE"',
@@ -618,7 +618,7 @@ class TraderTest(unittest.TestCase):
     def test_fund_buy_stock_split_sell_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # sell 200 2768.TSE (all of them)
             '"4001"	"TBA9999.001"	"2768.TSE"	"TRADE"	"2021-09-30 06:56:01"	"101"	"USD"	"0"	"None"',
             '"4002"	"TBA9999.001"	"2768.TSE"	"TRADE"	"2021-09-30 06:56:01"	"-200"	"2768.TSE"	"0"	"None"',
@@ -661,7 +661,7 @@ class TraderTest(unittest.TestCase):
     def test_two_years_report_calc_for_first_year(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # year 2021: we lose 100 USD
             # sell 50 PHYS for 600 USD
             '"6001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
@@ -709,7 +709,7 @@ class TraderTest(unittest.TestCase):
     def test_two_years_report_calc_for_second_year(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             # year 2021: we lose 100 USD
             # sell 50 PHYS for 600 USD
             '"6001"	"TBA9999.001"	"PHYS.ARCA"	"TRADE"	"2021-10-23 20:40:55"	"-50"	"PHYS.ARCA"	"0"	"None"',
@@ -757,7 +757,7 @@ class TraderTest(unittest.TestCase):
     def test_smoke_success(self) -> None:
         # given
         csv_report_lines = [
-            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"',
+            '"Transaction ID"	"Account ID"	"Symbol ID"	"Operation type"	"When"	"Sum"	"Asset"	"EUR equivalent"	"Comment"	"UUID"	"Parent UUID"',
             '"97505780"	"TBA0174.001"	"GSK.NYSE"	"ISSUANCE FEE"	"2021-04-14 08:44:35"	"-15.0"	"USD"	"-12.0"	"Issuance Fee"',
             '"79327161"	"TBA0174.001"	"OGZD.LSEIOB"	"TRADE"	"2020-12-22 09:05:44"	"-125"	"OGZD.LSEIOB"	"-559.66"	"None"',
             '"79327162"	"TBA0174.001"	"OGZD.LSEIOB"	"TRADE"	"2020-12-22 09:05:44"	"684.0"	"USD"	"559.66"	"None"',
