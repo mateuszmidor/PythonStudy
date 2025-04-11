@@ -149,6 +149,7 @@ Operations listed in report:
   - "CORPORATE ACTION"
   - "ISSUANSE FEE" - related to dividend (any other relations?)
   - "STOCK SPLIT"
+  - "FEE" - random fee, huh
 
 Moreover, any of the above can be commented as "Rollback for transaction #..., and have inverted amount of money/shares.
 
@@ -185,3 +186,6 @@ AutoConversion - like currency exchange but OperationType is AUTOCONVERSION inst
 - 2023:
   - added support for `AUTOCONVERSION` linked to `TRADE` by "Parent UUID" - "UUID" fields
   - fixed `US TAX` support - was missing from TaxBuilder
+- 2025:
+  - added support for `FEE`
+  - added support for TAX that actually returns money (tax recalculation)

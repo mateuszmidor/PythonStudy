@@ -102,6 +102,16 @@ class Wallet:
         self._assets[item.from_share.symbol] -= item.from_share.amount
         self._assets[item.to_share.symbol] += item.to_share.amount
 
+    def fee(self, item: FeeItem) -> None:
+        # check transaction possible
+        if item.paid_fee.currency not in self._assets:
+            raise InsufficientAssetError(f"Tried to pay fee {item.paid_fee}, but no such currency in the wallet")
+        if item.paid_fee.amount > self._assets[item.paid_fee.currency]:
+            raise InsufficientAssetError(f"Tried to pay fee {item.paid_fee}, but only has {self._assets[item.paid_fee.currency]}")
+
+        # apply transaction
+        self._assets[item.paid_fee.currency] -= item.paid_fee.amount
+
     def stock_split(self, item: StockSplitItem) -> None:
         # check transaction possible
         if item.from_share.symbol not in self._assets:
@@ -148,8 +158,12 @@ class Wallet:
 
         # 3. And then pay commission as we now have money for that
         assets[item.commission.currency] -= item.commission.amount
-        if assets[item.asset_name] < 0 or assets[item.commission.currency] < 0:
-            raise InsufficientAssetError(f"Tried to sell {item.__dict__} but insufficient money/asset")
+        if  assets[item.commission.currency] < 0:
+            raise InsufficientAssetError(f"Tried to sell {item.__dict__} but insufficient money: {assets[item.commission.currency]}")
+
+        if assets[item.asset_name] < 0 :
+            raise InsufficientAssetError(f"Tried to sell {item.__dict__} but insufficient asset: {assets[item.commission.asset_name]}")
+
 
         # apply transaction
         self._assets[item.asset_name] -= item.amount

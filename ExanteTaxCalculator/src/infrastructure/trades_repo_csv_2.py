@@ -23,6 +23,7 @@ from src.infrastructure.builders import (
     DividendBuilder,
     AutoConversionBuilder,
     SentinelBuilder,
+    FeeBuilder
 )
 
 
@@ -110,6 +111,8 @@ class TradesRepoCSV2:
             return DividendBuilder()
         elif op == ReportRow.OperationType.AUTOCONVERSION:
             return AutoConversionBuilder()
+        elif op == ReportRow.OperationType.FEE:
+            return FeeBuilder()
         else:
             raise InvalidTradeError(f"Unknown trading operation: {op}")
 

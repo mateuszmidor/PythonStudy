@@ -70,6 +70,8 @@ class Trader:
                 # in 2023 report it turned out autoconversion can be a standalone transaction.
                 # before it was:
                 # raise TypeError(f"Autoconversion is not expected to be a standalone transaction but so it happened: {type(item)}")
+            elif isinstance(item, FeeItem):
+                self._wallet.fee(item)
             else:
                 raise TypeError(f"Not implemented transaction type: {type(item)}")
 

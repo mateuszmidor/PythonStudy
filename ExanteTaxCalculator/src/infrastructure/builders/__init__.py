@@ -7,3 +7,4 @@ from .stock_split_builder import StockSplitBuilder
 from .dividend_builder import DividendBuilder
 from .autoconversion_builder import AutoConversionBuilder
 from .building import SentinelBuilder
+from .fee_builder import FeeBuilder

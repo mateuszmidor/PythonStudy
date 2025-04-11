@@ -6,6 +6,7 @@ from .funding_item import FundingItem
 from .sell_item import SellItem
 from .tax_item import TaxItem
 from .issuance_fee_item import IssuanceFeeItem
+from .fee_item import FeeItem
 from .withdrawal_item import WithdrawalItem
 from .corporate_action_item import CorporateActionItem
 from .stock_split_item import StockSplitItem

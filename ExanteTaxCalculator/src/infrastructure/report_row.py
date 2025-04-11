@@ -25,6 +25,7 @@ class ReportRow:
         CORPORATE_ACTION = "CORPORATE ACTION"
         ISSUANCE_FEE = "ISSUANCE FEE"
         STOCK_SPLIT = "STOCK SPLIT"
+        FEE = "FEE"
 
     transaction_id: int
     account_id: str

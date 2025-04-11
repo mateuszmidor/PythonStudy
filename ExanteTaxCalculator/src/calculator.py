@@ -46,6 +46,7 @@ def csv_read_utf8(filename: str) -> List[str]:
     with open(filename) as f:
         lines = f.readlines()
     lines = [x.strip() for x in lines]
+    lines = [x for x in lines if not x.startswith('#')] # skip commented-out lines
     return lines
 
 
