@@ -69,7 +69,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_fund_withdraw_success(self) -> None:
         # given
@@ -97,7 +97,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_fund_exchange_success(self) -> None:
         # given
@@ -130,7 +130,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_dividend_together_with_issuance_fee_success(self) -> None:
         # given
@@ -161,7 +161,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(len(trader.report.dividends), 1)
         dividend = trader.report.dividends[0]
         self.assertIsInstance(dividend, DividendItemPLN)
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
         self.assertEqual(dividend.received_dividend_pln, USD_TO_PLN(100).amount)
         self.assertEqual(dividend.dividend_pln_quotation_date, datetime.date(2021, 10, 18))
 
@@ -188,7 +188,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, USD_TO_PLN(calc_tax(100)))
         self.assertEqual(trader.report.trades_by_asset, {})
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
         item = trader.report.dividends[0]
         self.assertIsInstance(item, DividendItemPLN)
         self.assertEqual(item.received_dividend_pln, Decimal(300))
@@ -225,7 +225,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.trades_by_asset, {})
 
         dividend = trader.report.dividends[0]
-        tax = trader.report.taxes[0]
+        tax = trader.report.dividend_taxes[0]
         assert isinstance(dividend, DividendItemPLN)
         assert isinstance(tax, TaxItemPLN)
         self.assertEqual(dividend.received_dividend_pln, USD_TO_PLN(100).amount)
@@ -262,7 +262,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.trades_by_asset, {})
 
         dividend = trader.report.dividends[0]
-        tax = trader.report.taxes[0]
+        tax = trader.report.dividend_taxes[0]
         assert isinstance(dividend, DividendItemPLN)
         assert isinstance(tax, TaxItemPLN)
         self.assertEqual(dividend.received_dividend_pln, USD_TO_PLN(100).amount)
@@ -296,7 +296,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        tax = trader.report.taxes[0]
+        tax = trader.report.dividend_taxes[0]
 
         assert isinstance(tax, TaxItemPLN)
         self.assertEqual(tax.paid_tax_pln, USD_TO_PLN(15).amount)
@@ -328,7 +328,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_fund_exchange_buy_success(self) -> None:
         # given
@@ -367,7 +367,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_fund_buy_with_autoconversion_success(self) -> None:
         # given
@@ -407,7 +407,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_fund_buy_with_autoconversion_sell_with_autoconversion_success(self) -> None:
         # given
@@ -450,7 +450,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
         profit = trader.report.trades_by_asset["CLR.SGX"][0]
         assert isinstance(profit, ProfitPLN)
@@ -485,7 +485,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, SGD_TO_PLN(calc_tax(30)))
         self.assertEqual(trader.report.trades_by_asset, {})
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
         dividend = trader.report.dividends[0]
         assert isinstance(dividend, DividendItemPLN)
@@ -530,7 +530,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
         profit = trader.report.trades_by_asset["PHYS.ARCA"][0]
         assert isinstance(profit, ProfitPLN)
@@ -573,7 +573,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_already_paid, PLN(0))
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
         profit = trader.report.trades_by_asset["PHYS.ARCA"][0]
         assert isinstance(profit, ProfitPLN)
@@ -613,7 +613,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(trader.report.results.dividends_tax_yet_to_be_paid, PLN(0))
         self.assertEqual(trader.report.trades_by_asset, {})
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_fund_buy_stock_split_sell_success(self) -> None:
         # given
@@ -656,7 +656,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(profit.received, USD_TO_PLN(101 - 1))
 
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_two_years_report_calc_for_first_year(self) -> None:
         # given
@@ -704,7 +704,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(profit.received, USD_TO_PLN(800))
 
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_two_years_report_calc_for_second_year(self) -> None:
         # given
@@ -752,7 +752,7 @@ class TraderTest(unittest.TestCase):
         self.assertEqual(profit.received, USD_TO_PLN(600))
 
         self.assertEqual(trader.report.dividends, [])
-        self.assertEqual(trader.report.taxes, [])
+        self.assertEqual(trader.report.dividend_taxes, [])
 
     def test_smoke_success(self) -> None:
         # given

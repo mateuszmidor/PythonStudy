@@ -10,6 +10,6 @@ from src.domain.tax_declaration.tax_declaration_numbers import TaxDeclarationNum
 @dataclass(frozen=True)
 class TradingReport:
     dividends: List[DividendItemPLN]
-    taxes: List[TaxItemPLN]
+    dividend_taxes: List[TaxItemPLN]
     trades_by_asset: Dict[str, List[ProfitPLN]]
     results: TaxDeclarationNumbers

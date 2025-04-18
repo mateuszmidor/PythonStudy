@@ -20,7 +20,7 @@ class TaxDeclarationNumbersCalculator:
         buys: List[Decimal],
         sells: List[Decimal],
         dividends: List[Decimal],
-        taxes: List[Decimal],
+        dividend_taxes: List[Decimal],
     ) -> TaxDeclarationNumbers:
         """
         Input:
@@ -35,7 +35,7 @@ class TaxDeclarationNumbersCalculator:
         shares_total_tax = self._calc_tax(shares_total_income - shares_total_cost)
 
         dividends_total_income = Decimal(sum(dividends))
-        dividends_tax_already_paid = Decimal(sum(taxes))
+        dividends_tax_already_paid = Decimal(sum(dividend_taxes))
         dividends_total_tax = self._calc_tax(dividends_total_income)
         dividends_tax_yet_to_be_paid = max(dividends_total_tax - dividends_tax_already_paid, Decimal(0))
 

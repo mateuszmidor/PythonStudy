@@ -13,12 +13,12 @@ from src.domain.transactions import TaxItem
 
 class TradingReportBuilder:
     @staticmethod
-    def build(profits: List[ProfitPLN], dividends: List[DividendItemPLN], taxes: List[TaxItemPLN], results: TaxDeclarationNumbers) -> TradingReport:
+    def build(profits: List[ProfitPLN], dividends: List[DividendItemPLN], dividend_taxes: List[TaxItemPLN], results: TaxDeclarationNumbers) -> TradingReport:
         """ Note: taxes from dividends should be included on "taxes" list """
 
         return TradingReport(
             dividends=dividends,
-            taxes=taxes,
+            dividend_taxes=dividend_taxes,
             trades_by_asset=TradingReportBuilder._group_profits_by_asset(profits),
             results=results,
         )

@@ -17,7 +17,7 @@ class TradingReportPrinter:
         lines: List[str] = list()
 
         lines += self._format_dividends(report.dividends)
-        lines += self._format_taxes(report.taxes)
+        lines += self._format_dividend_taxes(report.dividend_taxes)
         lines += self._format_profits(report.trades_by_asset)
         lines += self._format_results(report.results)
 
@@ -69,7 +69,7 @@ class TradingReportPrinter:
 
         return result
 
-    def _format_taxes(self, taxes: List[TaxItemPLN]) -> List[str]:
+    def _format_dividend_taxes(self, taxes: List[TaxItemPLN]) -> List[str]:
         format_str = "Suma: {:0.2f} PLN\n"
         result: List[str] = list()
 

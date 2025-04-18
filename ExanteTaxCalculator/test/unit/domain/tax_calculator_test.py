@@ -30,7 +30,7 @@ class TaxCalculatorTest(unittest.TestCase):
             buys=[],
             sells=[],
             dividends=[],
-            taxes=[],
+            dividend_taxes=[],
         )
 
         # then
@@ -55,7 +55,7 @@ class TaxCalculatorTest(unittest.TestCase):
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[],
-            taxes=[],
+            dividend_taxes=[],
         )
 
         # then
@@ -78,7 +78,7 @@ class TaxCalculatorTest(unittest.TestCase):
             buys=[],
             sells=[],
             dividends=[dividend1, dividend2],
-            taxes=[],
+            dividend_taxes=[],
         )
 
         # then
@@ -101,7 +101,7 @@ class TaxCalculatorTest(unittest.TestCase):
             buys=[],
             sells=[],
             dividends=[],
-            taxes=[tax1, tax2],
+            dividend_taxes=[tax1, tax2],
         )
 
         # then
@@ -126,7 +126,7 @@ class TaxCalculatorTest(unittest.TestCase):
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[],
-            taxes=[],
+            dividend_taxes=[],
         )
 
         # then
@@ -155,7 +155,7 @@ class TaxCalculatorTest(unittest.TestCase):
             buys=[buy1, buy2],
             sells=[sell1, sell2],
             dividends=[dividend1, dividend2],
-            taxes=[tax1, tax2],
+            dividend_taxes=[tax1, tax2],
         )
 
         # then

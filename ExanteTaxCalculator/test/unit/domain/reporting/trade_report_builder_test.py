@@ -28,7 +28,7 @@ class TradingReportBuilderTest(unittest.TestCase):
         report = TradingReportBuilder.build(
             profits=[profit1, profit2],
             dividends=[dividend1, dividend2],
-            taxes=[tax1, tax2],
+            dividend_taxes=[tax1, tax2],
             results=TaxDeclarationNumbers(),
         )
 
@@ -37,9 +37,9 @@ class TradingReportBuilderTest(unittest.TestCase):
         self.assertEqual(report.dividends[0], dividend1)
         self.assertEqual(report.dividends[1], dividend2)
 
-        self.assertEqual(len(report.taxes), 2)
-        self.assertEqual(report.taxes[0], tax1)
-        self.assertEqual(report.taxes[1], tax2)
+        self.assertEqual(len(report.dividend_taxes), 2)
+        self.assertEqual(report.dividend_taxes[0], tax1)
+        self.assertEqual(report.dividend_taxes[1], tax2)
 
         self.assertEqual(len(report.trades_by_asset[asset]), 2)
         self.assertEqual(report.trades_by_asset[asset][0], profit1)
@@ -56,7 +56,7 @@ class TradingReportBuilderTest(unittest.TestCase):
         report = TradingReportBuilder.build(
             profits=[],
             dividends=[dividend1, dividend2],
-            taxes=[],
+            dividend_taxes=[],
             results=TaxDeclarationNumbers(),
         )
 
@@ -65,6 +65,6 @@ class TradingReportBuilderTest(unittest.TestCase):
         self.assertEqual(report.dividends[0], dividend1)
         self.assertEqual(report.dividends[1], dividend2)
 
-        self.assertEqual(report.taxes, [])
+        self.assertEqual(report.dividend_taxes, [])
 
         self.assertEqual(report.trades_by_asset, {})

@@ -32,7 +32,7 @@ class Trader:
         repo.load(report_csv_lines=report_csv_lines)
         matcher = BuySellFIFOMatcher()
         received_dividends: List[DividendItem] = []
-        paid_taxes: List[TaxItem] = []
+        paid_dividend_taxes: List[TaxItem] = []
 
         for i, item in enumerate(repo.items):
             # print(i, item)
@@ -54,7 +54,7 @@ class Trader:
             elif isinstance(item, TaxItem):  # generates numbers for PIT38 - check year here
                 self._wallet.tax(item)
                 if item.date.year == year:
-                    paid_taxes.append(item)
+                    paid_dividend_taxes.append(item)
             elif isinstance(item, IssuanceFeeItem):
                 self._wallet.issuance_fee(item)
             elif isinstance(item, CorporateActionItem):
@@ -83,18 +83,18 @@ class Trader:
         dividend_items_pln = [dividend_quotator.quote(item) for item in received_dividends]
         dividend_amounts = [item.received_dividend_pln for item in dividend_items_pln]
 
-        # paid taxes in PLN
-        tax_quotator = TaxItemPLNQuotator(self._quotes_provider)
-        tax_items_pln = [tax_quotator.quote(item) for item in paid_taxes]  # collect standalone taxes
-        tax_items_pln += [item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None]  # add taxes reported with dividends
-        tax_amounts = [item.paid_tax_pln for item in tax_items_pln]
+        # paid dividend taxes in PLN
+        dividend_tax_quotator = TaxItemPLNQuotator(self._quotes_provider)
+        dividend_tax_items_pln = [dividend_tax_quotator.quote(item) for item in paid_dividend_taxes]  # collect standalone taxes. Note: all reported taxes result from dividends, but it happens the tax is reported with delay and cant be matched with it's dividend
+        dividend_tax_items_pln += [item.paid_tax_pln for item in dividend_items_pln if item.paid_tax_pln is not None]  # add taxes reported together with dividends
+        dividend_tax_amounts = [item.paid_tax_pln for item in dividend_tax_items_pln]
 
-        results = self._tax_calculator.calc_tax_declaration_numbers(buys=buy_amounts, sells=sell_amounts, dividends=dividend_amounts, taxes=tax_amounts)
+        results = self._tax_calculator.calc_tax_declaration_numbers(buys=buy_amounts, sells=sell_amounts, dividends=dividend_amounts, dividend_taxes=dividend_tax_amounts)
 
         self._report = TradingReportBuilder.build(
             profits=money_flow_pln,
             dividends=dividend_items_pln,
-            taxes=tax_items_pln,
+            dividend_taxes=dividend_tax_items_pln,
             results=results,
         )
 
