@@ -44,6 +44,10 @@ class StockSplitBuilder(Builder):
 
         if inc != None and len(self._item.decrease) == 1:
             return self._build_stock_split_item()
+        elif "fractional share payment" in inc.comment:
+            print(f"fractional share payment of {inc.sum} {inc.asset}")
+            return self._build_stock_split_fractional_payment_item()
+
         else:
             raise InvalidTradeError(f"Unrecognized stock split type:\ninc: {inc}\ndec: {dec}")
 
@@ -58,3 +62,14 @@ class StockSplitBuilder(Builder):
         from_share = Share(amount=-dec.sum, symbol=dec.asset)
         to_share = Share(amount=inc.sum, symbol=inc.asset)
         return StockSplitItem(from_share=from_share, to_share=to_share, date=dec.when, transaction_id=transaction_id)
+
+     # fractional payment is when stock split results in fractional shares and broker pays money instead of issuing fractional shares.
+     # this is nothing else than adding money to the account
+    def _build_stock_split_fractional_payment_item(self) -> FundingItem:
+        inc = self._item.increase
+        assert inc is not None
+        if not is_money(inc):
+            raise InvalidTradeError(f"Tried stock split fractional payment with non-money: {inc}")
+        transaction_id = self._item.transaction_id
+        assert transaction_id is not None
+        return FundingItem(funding_amount=Money(inc.sum, inc.asset), date=inc.when, transaction_id=transaction_id)

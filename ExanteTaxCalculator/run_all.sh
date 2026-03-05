@@ -15,7 +15,7 @@ function stage() {
     BOLD_BLUE="\e[1m\e[34m"
     RESET="\e[0m"
     msg="$1"
-    
+
     echo
     echo -e "$BOLD_BLUE$msg$RESET"
 }
@@ -34,20 +34,18 @@ function checkPrerequsites() {
 
 function setupVirtualEnv() {
     stage "Setting up virtualenv"
-
-    if [[ ! -d venv ]]; then 
-        # install and initialize virtual env
-        $PIP install virtualenv
-        virtualenv -p $PYTHON ./venv
-        source ./venv/bin/activate 
-
+    if [[ ! -d venv ]]; then
+        # create virtualenv using stdlib venv
+        $PYTHON -m venv ./venv
+        source ./venv/bin/activate
         # install requirements into newly initialized virtualenv
-        $PIP install -r requirements.txt
+        python -m pip install --upgrade pip
+        python -m pip install setuptools packaging
+        python -m pip install -r requirements.txt
     else
         # just activate virtualenv
         source ./venv/bin/activate
     fi
-
     echo "Done"
 }
 

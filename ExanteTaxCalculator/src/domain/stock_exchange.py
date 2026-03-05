@@ -42,7 +42,11 @@ known_stock_exchanges = [
     StockExchange("Austria", "Vienna Stock Exchange", "VSE"),
     StockExchange("Polska", "Warsaw Stock Exchange", "WSE"),
     StockExchange("Niemcy", "Xetra Stock Exchange", "XETRA"),
+
     # EURONEXT is problematic; how to decide country when short is the same for a number of countries?
+    StockExchange("Holandia", "Euronext Amsterdam", "EURONEXT-NL"), # added suffix manually to differentiate by country
+    StockExchange("Francja", "Euronext Paris", "EURONEXT-FR"), # added suffix manually to differentiate by country
+
     # StockExchange("Włochy", "Borsa Italiana", "EURONEXT"),
     # StockExchange("Holandia", "Euronext Amsterdam", "EURONEXT"),
     # StockExchange("Belgia", "Euronext Brussels", "EURONEXT"),
